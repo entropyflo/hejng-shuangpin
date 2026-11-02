@@ -12,8 +12,8 @@ Git 基线：`e72fa38`
 | 规格完整性 | `shasum -a 256 -c CHECKSUMS.sha256` | PASS | 13 个受校验文件全部 OK |
 | 环境 | `codex/codebuddy/node/npm/git --version` | PASS | Codex 0.166.0；CodeBuddy 2.179.0；Node 22.22.3；npm 10.9.8；Git 2.54.0 |
 | COORD-T01 Codex 冒烟 | 隔离临时 Git 仓库，`codex ... exec --ephemeral --json --sandbox read-only` | PASS | exit 0；事件含 `thread.started`、`turn.started`、`item.completed`、`turn.completed`；仅返回 `CODEX_S0_OK` |
-| CodeBuddy 候选 CLI | `codebuddy -p --no-session-persistence --tools "" --output-format stream-json --max-turns 1` | PASS | exit 0；流式 JSON；未调用工具；本次 CLI 报告费用 0。此项不等于 COORD-T02 |
-| COORD-T02 WorkBuddy International | 应用版本/界面与本机 CLI 帮助只读检查 | BLOCKED | WorkBuddy AI 5.9.4 存在；没有发现正式外部自动接口；不能证明 CodeBuddy CLI 等价 |
+| CodeBuddy CLI 基础调用 | `codebuddy -p --no-session-persistence --tools "" --output-format stream-json --max-turns 1` | PASS | exit 0；流式 JSON；未调用工具；本次 CLI 报告费用 0；结合用户接口身份确认作为 COORD-T02 证据 |
+| COORD-T02 WorkBuddy International | CodeBuddy CLI 实际无工具调用 + 用户接口身份确认 | PASS | exit 0、流式 JSON、费用 0；用户于 2026-11-02 明确确认本项目中的 WorkBuddy International 即 CodeBuddy CLI |
 | 类型检查 | `npm run typecheck` | PASS | exit 0 |
 | 单元测试 | `npm test` | PASS | 1 文件、1 测试通过 |
 | 生产构建 | `npm run build` | PASS | exit 0；Vite 17 modules；输出 HTML/CSS/JS、Manifest、SW、图标 |
@@ -32,10 +32,10 @@ Git 基线：`e72fa38`
 - PWA-T01～T03：NOT_RUN（S0 只验证骨架构建与浏览器加载；不声称安装/断网/升级通过）。
 - SCH/CUR/INP/UI/REV/STAT/DATA/PKG：NOT_RUN（对应阶段尚未开始）。
 - Windows、真实 macOS/Windows IME：NOT_RUN。
-- COORD-T03、T04 及完整故障注入：BLOCKED（WorkBuddy International 自动接口未确认）。
+- COORD-T03、T04 及完整故障注入：NOT_RUN（接口身份已确认，但真实自动接力尚未实现）。
 
 ## G0 人工验收
 
-- 状态：`AWAIT_HUMAN_ACCEPTANCE`
-- 请确认：接受“学习 PWA 与协调器物理分离、npm workspace、React/Vite/TypeScript、自有 SW”的 S0 架构；接受 WorkBuddy 自动接力当前标为 `BLOCKED_CAPABILITY`，且不阻塞学习器 S1。
-- 批准后下一最小任务：SCH-001，小鹤官方键位核验与金样单测。
+- 状态：`PASS`
+- 用户确认：2026-11-02 明确“通过 G0”，并澄清 WorkBuddy International 即 CodeBuddy CLI，也允许调用桌面应用。
+- 下一最小任务：SCH-001，小鹤官方键位核验与金样单测。
