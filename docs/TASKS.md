@@ -12,8 +12,8 @@
 | G0 | 032, 033 | ENV-001～003, PWA-S0 | DONE | 用户 | 已于 2026-11-02 批准 | `docs/TEST_REPORT.md` | G0 决策提交 |
 | SCH-001 | 001, 005, 009, 021 | G0 | DONE | Codex | 规则变更时复核四层来源 | SCH-T01, SCH-T03；11 项新增测试 | SCH-001 提交 |
 | SCH-002 | 001, 009, 022 | SCH-001 | DONE | Codex | 规则变更时复跑零声母与正规化金样 | SCH-T02；31 项新增测试 | SCH-002 提交 |
-| SCH-003 | 009, 022 | SCH-001 | IN_PROGRESS | Codex | 离线词级读音与人工纠正 | SCH-T04, SCH-T05 | — |
-| CUR-001 | 001, 002, 017, 019 | SCH-001 | TODO | Codex | 七天原创课程 | CUR-T01, CUR-T02 | — |
+| SCH-003 | 009, 022 | SCH-001 | DONE | Codex | S1 验证页接入真实 localStorage | SCH-T04 PASS；SCH-T05 领域 PASS/浏览器 NOT_RUN | SCH-003 提交 |
+| CUR-001 | 001, 002, 017, 019 | SCH-001 | IN_PROGRESS | Codex | 七天原创课程与基础题库 | CUR-T01, CUR-T02 | — |
 | CUR-002 | 005, 009 | SCH-001 | TODO | Codex | Schema 与坏题筛查 | CUR-T03 | — |
 | UI-001～004 | 003, 004, 010～013, 016, 020, 023, 024, 028, 030 | S1/G1 | TODO | Codex | S2 分解实现 | INP/UI 全组 | — |
 | REV-001～003 | 006～008 | S2/G2 | TODO | Codex | S3 分解实现 | REV 全组 | — |

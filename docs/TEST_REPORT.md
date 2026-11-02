@@ -65,3 +65,17 @@ SCH-001 不包含零声母与完整拼音正规化；这些项目保持 `NOT_RUN
 | 完整韵母拼写 | PASS | `iou/uei/uen→iu/ui/un` |
 | 非法零声母 | PASS | 非十二项输入抛 `UNSUPPORTED_ZERO_INITIAL` |
 | 自动化回归 | PASS | `npm test` 2 文件/42 测试 PASS；此前同一变更的 typecheck/build 均 exit 0 |
+
+## S1 / SCH-003 增量
+
+执行日期：2026-11-02（Asia/Shanghai）
+
+| 测试 | 结果 | 证据 |
+|---|---|---|
+| SCH-T04 上下文多音词 | PASS | `银行/行走/重庆/重要/音乐` 词级读音与双拼码全部通过 |
+| 单字歧义 | PASS | `行/重/乐` 保留候选、不自动选定；未知字不猜测 |
+| 位置级人工修正 | PASS | 修正优先于词典，绑定 `textId + textVersion + span`，重复生成一致 |
+| 修正导出导入 | PASS | schemaVersion 1 往返一致，错误版本被拒绝 |
+| 仓储重新实例化 | SIMULATED_ONLY | 内存 Storage 适配器模拟重新打开后可恢复；真实浏览器 localStorage 尚未接 UI |
+| 首轮自动化 | FAIL | 3 个断言把“属性不存在”误写为“属性值 undefined”；领域结果正确，测试已修正 |
+| 修复后回归 | PASS | `npm run typecheck` exit 0；`npm test` 3 文件/58 测试 PASS；`npm run build` exit 0 |
