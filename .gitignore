@@ -13,4 +13,5 @@ runtime/
 .env
 .env.*
 !.env.example
+.workbuddy-ai/
 

@@ -127,3 +127,28 @@ Git 基线：`7d1aa98`（本次提交前）
 - 自动化前置证据：`npm run typecheck` exit 0；`npm test` 5 文件/84 测试 PASS；`npm run build` exit 0；`npm run verify:ui` 11 项断言 PASS。
 - 边界说明：用户未逐项复述操作细节，本报告只记录“已确认通过”这一事实，不替用户补写未执行的具体步骤。
 - 下一步：S2 / UI-001（首页、路由与浅色/深色/跟随系统主题）。
+
+## S2 / UI-001 首页、路由与主题
+
+执行日期：2026-11-02（Asia/Shanghai）
+被测工件：`npm run build` 产物，`http://127.0.0.1:4174/`
+命令：`npm run verify:ui`（`scripts/verify-ui.mjs`，取代 S1 阶段的 `verify-s1-ui.mjs`）
+
+| 检查 | 结果 | 证据 |
+|---|---|---|
+| 首页统计与冷启动 | PASS | 7 天 / 151 道 / 100 个知识点；“上次学习”为“还没有记录” |
+| 首页 → 课时 → 作答 | PASS | 点击“从第 1 天开始”进入 `/lesson/day-1`，韵母 a 判定正确 |
+| 浏览器后退 | PASS | `pushState` + `popstate` 正常回退到 `/home`，并显示“上次学习 第 1 天” |
+| 课程列表 | PASS | `/course` 列出 7 天 |
+| 键位页 | PASS | `/keyboard` 渲染 26 键与 12 行零声母 |
+| 深色主题持久化 | PASS | 选择“深色”后 `data-theme=dark`，刷新后仍为深色且下拉保持 |
+| 浅色主题 | PASS | 切回浅色后 `data-theme=light`，截图对比正常 |
+| 自由训练抽题 | PASS | `seed 1` 抽 20 题；“换一批”到 `seed 2`；难度筛选重置 seed |
+| 多音字修正持久化 | PASS | `行 → hang / hh`，刷新后仍生效，可清除 |
+| 404 | PASS | `/nope` 显示“没有这个页面”，可返回首页 |
+| 控制台 | PASS | 0 条 error / pageerror |
+| 截图 | PASS | `s2-home-light.png`、`s2-home-dark.png`、`s2-lesson.png`、`s2-settings.png` |
+
+单元测试新增：路由解析 6 项、主题偏好 4 项、上次学习记录 3 项；全量 `npm test` 7 文件 / 96 测试 PASS，`npm run typecheck` 与 `npm run build` 均 exit 0。
+
+尚未执行：真实系统 IME 组合输入、Windows、PWA 安装/断网、屏幕阅读器实测。

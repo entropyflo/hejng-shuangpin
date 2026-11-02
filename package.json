@@ -12,7 +12,7 @@
     "dev": "npm run dev --workspace @xiaohe/trainer",
     "test": "npm run test --workspace @xiaohe/trainer",
     "typecheck": "npm run typecheck --workspace @xiaohe/trainer",
-    "verify:ui": "node scripts/verify-s1-ui.mjs"
+    "verify:ui": "node scripts/verify-ui.mjs"
   },
   "engines": {
     "node": ">=22.12"

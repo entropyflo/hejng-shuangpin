@@ -1,7 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
+import { applyTheme, readThemePreference, systemPrefersDark } from "./app/theme";
 import "./styles.css";
+
+applyTheme(readThemePreference(window.localStorage), document.documentElement, systemPrefersDark());
 
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
