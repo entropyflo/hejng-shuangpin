@@ -108,4 +108,4 @@
 - README 重写为面向学习者的图文项目介绍，包含小鹤双拼简介、推荐理由、学习方法、功能导览、隐私说明与两个版本说明。
 - `docs/showcase/` 收录 V1/V2 首页、课程、自定义文本、复习、统计与移动端精选截图。
 - 用真实 Chromium 操作逐帧生成 15 秒 GIF 与 MP4；`npm run showcase` 可重复录制。
-- 准备 V1/V2 Release Notes；本地 GitHub 尚无远端，连接器账号 `entropyflo` 下未找到目标仓库，待创建空仓库后上传。
+- 已发布公开仓库 <https://github.com/entropyflo/hejng-shuangpin>，推送 `main`、`v1-workbuddy`、`v1.0.0` 与 `v2.0.0`；V1/V2 Release 已建立，V2 Release 附带 MP4 演示视频。
