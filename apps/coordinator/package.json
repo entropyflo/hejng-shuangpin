@@ -1,0 +1,13 @@
+{
+  "name": "@xiaohe/coordinator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "本地协调器：状态机、单写锁与 Agent 接力（默认 dry-run）",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "coord": "node dist/cli.js"
+  }
+}

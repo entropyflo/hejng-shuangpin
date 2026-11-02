@@ -33,6 +33,13 @@
 | PWA-001 | 014, 020 | DAT-001 | DONE | WorkBuddy | 资源变化需重新构建生成 SW | 断网刷新与路由断言 | S4 提交 |
 | DAT-002 | 015, 029 | DAT-001 | DONE | WorkBuddy | 备份结构变更必须升 schemaVersion | 备份校验单测；导出/清空/导入断言 | S4 提交 |
 | PKG-001 | 027 | PWA-001 | IN_PROGRESS | WorkBuddy | Windows 真机与签名安装包待做 | macOS 启动脚本与静态服务已验证；Windows NOT_RUN | S4 提交 |
-| G4 | 014, 015, 027, 029 | PWA-001, DAT-002, PKG-001 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 安装 PWA、断网、重启与备份恢复 | 需真机安装与 Windows 验证 | — |
-| ORG-001～007 | 032～041 | ENV-003 或获批阻塞设计 | TODO | Codex | S5；接口不可用时保持阻塞 | COORD 全组 | — |
+| G4 | 014, 015, 027, 029 | PWA-001, DAT-002, PKG-001 | DONE | 用户 | 已通过；S5 从协调器内核开始 | 用户 2026-11-02 23:41 确认“通过” | — |
+| ORG-001 | 034, 035, 040, 041 | ENV-003 | DONE | WorkBuddy | 锁文件格式变更需兼容旧版 | 单写锁 6 项测试 | S5 提交 |
+| ORG-002 | 035, 036, 039 | ENV-003 | DONE | WorkBuddy | 状态字段变更需升 version | 状态机 6 项测试 | S5 提交 |
+| ORG-003 | 034, 035 | ORG-001 | DONE | WorkBuddy | 真实 CLI 调用未执行 | 适配器代码；真实运行 NOT_RUN | S5 提交 |
+| ORG-004 | 034, 035 | ORG-001 | DONE | WorkBuddy | 真实 CLI 调用未执行 | 适配器代码；真实运行 NOT_RUN | S5 提交 |
+| ORG-005 | 035, 039 | ORG-003, ORG-004 | DONE | WorkBuddy | 真实额度耗尽未触发 | 假适配器接力 7 项测试；T03 PASS / T04 NOT_RUN | S5 提交 |
+| ORG-006 | 037 | ORG-002 | DONE | WorkBuddy | 控制台功能按需扩展 | CLI 冒烟；控制台 5 项测试 | S5 提交 |
+| ORG-007 | 038, 039 | ORG-002 | IN_PROGRESS | WorkBuddy | 系统重启恢复未实现 | 原子状态与暂停语义已测；重启恢复 NOT_RUN | S5 提交 |
+| G5 | 032～041 | ORG-001～007 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 真实额度耗尽接力需实测；不可用则标 BLOCKED | COORD-T04 NOT_RUN | — |
 | QA-001～005 | 031～033 | 各阶段 | TODO | Codex + 用户 | 随阶段执行 | TEST_ACCEPTANCE | — |

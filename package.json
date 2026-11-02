@@ -13,7 +13,9 @@
     "test": "npm run test --workspace @xiaohe/trainer",
     "typecheck": "npm run typecheck --workspace @xiaohe/trainer",
     "verify:ui": "node scripts/verify-ui.mjs",
-    "serve:dist": "node scripts/serve-dist.mjs"
+    "serve:dist": "node scripts/serve-dist.mjs",
+    "test:all": "npm run test --workspace @xiaohe/trainer && npm run test --workspace @xiaohe/coordinator",
+    "coord": "npm run coord --workspace @xiaohe/coordinator"
   },
   "engines": {
     "node": ">=22.12"
