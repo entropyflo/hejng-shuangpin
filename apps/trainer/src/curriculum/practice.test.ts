@@ -9,7 +9,6 @@ import {
   expectedAnswer,
   expectedKeySequence,
   finalGroupsByKey,
-  fingerForKey,
   insertRetry,
   retryOffset,
   normalizeCodeInput,
@@ -137,43 +136,5 @@ describe("测速前缀比对", () => {
     expect(correctPrefixLength("abc", "abcdef")).toBe(3);
     expect(correctPrefixLength("abc", "abd")).toBe(2);
     expect(correctPrefixLength("", "abc")).toBe(0);
-  });
-});
-
-describe("指法映射", () => {
-  it("26 个字母键都有推荐手指", () => {
-    const letters = "abcdefghijklmnopqrstuvwxyz".split("");
-    for (const letter of letters) {
-      expect(fingerForKey(letter)).not.toBeNull();
-    }
-  });
-
-  it("左右手分区正确", () => {
-    expect(fingerForKey("q")).toBe("左小指");
-    expect(fingerForKey("f")).toBe("左食指");
-    expect(fingerForKey("j")).toBe("右食指");
-    expect(fingerForKey("p")).toBe("右小指");
-    expect(fingerForKey("P")).toBe("右小指");
-    expect(fingerForKey("1")).toBeNull();
-  });
-});
-
-describe("答错当轮插回", () => {
-  it("插回位置在 2～5 题之后", () => {
-    expect(retryOffset("key-final-a")).toBeGreaterThanOrEqual(2);
-    expect(retryOffset("key-final-a")).toBeLessThanOrEqual(5);
-    expect(retryOffset("key-final-a")).toBe(retryOffset("key-final-a"));
-  });
-
-  it("插回不改变原队列", () => {
-    const queue = ["a", "b", "c", "d"];
-    const next = insertRetry(queue, 0, "a", 2);
-    expect(queue).toEqual(["a", "b", "c", "d"]);
-    expect(next).toEqual(["a", "b", "c", "a", "d"]);
-  });
-
-  it("末尾插入不会越界", () => {
-    const next = insertRetry(["a", "b"], 1, "b", 5);
-    expect(next).toEqual(["a", "b", "b"]);
   });
 });

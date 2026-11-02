@@ -24,7 +24,7 @@ macOS 也可双击 `release/start-macos.command`（127.0.0.1:4173），Windows �
 ## 测试
 
 ```sh
-npm run test:all     # 学习器 198 项 + 协调器 35 项
+npm run test:all     # 学习器 193 项 + 协调器 35 项
 npm run verify:ui    # 45 项浏览器断言（需先 build 并启动 preview）
 npm run coord -- status
 ```

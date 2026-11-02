@@ -59,24 +59,6 @@ export function LessonPage({ lessonId }: { lessonId: string }) {
         </nav>
       </header>
 
-      <section className="panel" aria-labelledby="steps-title">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">本课结构</p>
-            <h2 id="steps-title">五步走完一课</h2>
-          </div>
-          <p className="panel-note">可以跳过讲解直接做题，也可以只练其中某一步。</p>
-        </div>
-        <ol className="step-list">
-          {lesson.steps.map((step) => (
-            <li key={step.kind}>
-              <span className="step-kind">{step.title}</span>
-              <span className="step-body">{step.body}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
       <section className="panel" aria-labelledby="practice-title">
         <div className="panel-heading">
           <div>

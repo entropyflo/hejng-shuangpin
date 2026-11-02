@@ -71,7 +71,17 @@ try {
   assert.match(stats, /151 道/u);
   assert.match(stats, /学习天数/u);
   assert.match(stats, /XP/u);
-  check("首页统计与冷启动", stats.replace(/\s+/gu, " "));
+  const background = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  assert.equal(background, "rgb(255, 255, 255)");
+  const boxes = await page.locator(".course-grid li").evaluateAll((items) =>
+    items.slice(0, 2).map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y };
+    }),
+  );
+  assert.ok(Math.abs(boxes[0].x - boxes[1].x) < 2);
+  assert.ok(boxes[1].y > boxes[0].y);
+  check("白色背景与竖列路径", "body 背景 #fff，七天路径纵向排列");
 
   // 首页 → 课时 → 作答
   await page.getByRole("link", { name: /从第 1 天开始/u }).click();
@@ -83,9 +93,23 @@ try {
   assert.equal((await page.locator(".hint-key.is-next").innerText()).trim(), "A");
   check("屏幕键盘提示", "自动模式首题显示，高亮下一个键 A");
 
-  await answerKey("a");
+  assert.equal(await page.getByText("本课结构").count(), 0);
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.classList.contains("answer-input") ?? false),
+    true,
+  );
+  check("作答框自动聚焦", "进入课时无需点击输入框");
+
+  await page.keyboard.type("a");
+  await page.keyboard.press("Enter");
   await page.locator(".feedback-correct").waitFor();
-  check("首页 → 课时 → 按键作答", "day-1 韵母 a 判定正确");
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.querySelector(".exercise-card h3")?.textContent?.includes("韵母“o”"));
+  assert.equal(
+    await page.evaluate(() => document.activeElement?.classList.contains("answer-input") ?? false),
+    true,
+  );
+  check("回车确认与空格切题", "无需鼠标，切题后输入框仍聚焦");
 
   // 浏览器后退
   await page.goBack();
@@ -271,7 +295,6 @@ try {
 
   // 专注、快捷键、指法与动画
   await goto("/settings");
-  await page.getByRole("button", { name: /^指法提示：/u }).click();
   await page.getByRole("button", { name: /^动画：/u }).click();
   assert.equal(await page.locator("html").getAttribute("data-motion"), "off");
   await page.reload({ waitUntil: "load" });
@@ -279,11 +302,6 @@ try {
   await page.getByRole("button", { name: /^动画：/u }).click();
   assert.equal(await page.locator("html").getAttribute("data-motion"), "on");
   check("动画开关与持久化", "关闭后 data-motion=off，刷新仍保持，可重新开启");
-
-  await goto("/lesson/day-1");
-  assert.ok((await page.locator(".hint-key .finger").count()) > 0);
-  await screenshot("s2-fingering.png");
-  check("指法提示", "屏幕键盘显示推荐手指");
 
   await page.keyboard.press("f");
   assert.equal(await page.locator(".topbar").isVisible(), false);

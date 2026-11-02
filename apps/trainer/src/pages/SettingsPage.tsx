@@ -33,7 +33,7 @@ export function SettingsPage() {
   const [dataMessage, setDataMessage] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
-  const { motion, sound, fingering, setMotion, setSound, setFingering } = usePreferences();
+  const { motion, sound, setMotion, setSound } = usePreferences();
 
   function changeHint(mode: HintMode) {
     setHintMode(mode);
@@ -190,9 +190,9 @@ export function SettingsPage() {
         <div className="panel-heading">
           <div>
             <p className="eyebrow">体验</p>
-            <h2 id="experience-title">动画、音效与指法</h2>
+            <h2 id="experience-title">动画与音效</h2>
           </div>
-          <p className="panel-note">三项都可独立关闭；关闭动画会同时停用键盘闪烁等过渡效果。</p>
+          <p className="panel-note">两项都可独立关闭；关闭动画会同时停用键盘闪烁等过渡效果。</p>
         </div>
 
         <div className="filter-row" role="group" aria-label="体验开关">
@@ -211,14 +211,6 @@ export function SettingsPage() {
             onClick={() => setSound(!sound)}
           >
             音效：{sound ? "开" : "关"}
-          </button>
-          <button
-            type="button"
-            className={fingering ? "chip is-active" : "chip"}
-            aria-pressed={fingering}
-            onClick={() => setFingering(!fingering)}
-          >
-            指法提示：{fingering ? "开" : "关"}
           </button>
         </div>
       </section>

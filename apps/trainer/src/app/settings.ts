@@ -12,7 +12,6 @@ export const CORRECTION_MODE_KEY = "xiaohe.correction-mode.v1";
 export const AUTO_HINT_STREAK = 3;
 export const MOTION_KEY = "xiaohe.motion.v1";
 export const SOUND_KEY = "xiaohe.sound.v1";
-export const FINGERING_KEY = "xiaohe.fingering.v1";
 
 const HINT_MODES: readonly HintMode[] = ["always", "hidden", "auto"];
 const INPUT_MODES: readonly InputMode[] = ["key", "ime"];

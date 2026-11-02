@@ -11,7 +11,7 @@ import { Link } from "../ui/Link";
 const ENTRIES = [
   { to: "/practice", title: "自由训练", body: "按难度抽题，随时开始，不必先选课。" },
   { to: "/keyboard", title: "键位映射", body: "26 个字母键、共享韵母与十二个零声母。" },
-  { to: "/stats", title: "学习统计", body: "热力图与 CPM 将在 S3 接入，目前没有数据。" },
+  { to: "/stats", title: "学习统计", body: "总览、错题、键位热力图与趋势。" },
   { to: "/texts", title: "自定义文本", body: "粘贴自己的句子，用系统输入法练习。" },
   { to: "/settings", title: "设置与修正", body: "切换主题，修改多音字读音并保存在本机。" },
 ];
@@ -53,7 +53,7 @@ export function HomePage() {
   return (
     <>
       <section className="hero">
-        <p className="eyebrow">S2 开发中 · 七天路径全部开放</p>
+        <p className="eyebrow">七天路径全部开放 · 离线可用</p>
         <h1>沿着鹤径，练成双拼</h1>
         <p className="lede">
           从认键到真实输入，按自己的节奏推进。进度只作参考，不设时间、星级或订阅门槛。

@@ -3,7 +3,6 @@ import {
   AUTO_HINT_STREAK,
   CORRECTION_MODE_KEY,
   HINT_MODE_KEY,
-  FINGERING_KEY,
   INPUT_MODE_KEY,
   MOTION_KEY,
   SOUND_KEY,
@@ -107,12 +106,11 @@ describe("输入方式", () => {
   });
 });
 
-describe("动画、音效与指法开关", () => {
+describe("动画与音效开关", () => {
   it("未设置时使用默认值", () => {
     const storage = memoryStorage();
     expect(readToggle(storage, MOTION_KEY, true)).toBe(true);
     expect(readToggle(storage, SOUND_KEY, false)).toBe(false);
-    expect(readToggle(storage, FINGERING_KEY, false)).toBe(false);
   });
 
   it("写入 on/off 后可读回", () => {

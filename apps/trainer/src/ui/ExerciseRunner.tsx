@@ -42,6 +42,10 @@ const KIND_LABEL: Record<Exercise["kind"], string> = {
   "speed-challenge": "速度挑战",
 };
 
+function exerciseKindSupportsInput(kind: Exercise["kind"] | undefined): boolean {
+  return kind !== undefined && kind !== "speed-challenge" && kind !== "reverse-recall";
+}
+
 const DIFFICULTY_LABEL = {
   basic: "入门",
   intermediate: "进阶",
@@ -68,6 +72,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [saveError, setSaveError] = useState<string | null>(null);
   const { sound } = usePreferences();
 
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const sessionIdRef = useRef(newSessionId());
   const sessionStartRef = useRef(Date.now());
   const questionStartRef = useRef(Date.now());
@@ -79,6 +84,38 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     const timer = window.setTimeout(() => setFlashKey(null), 1200);
     return () => window.clearTimeout(timer);
   }, [flashKey]);
+
+  const canTypeInline = exerciseKindSupportsInput(queue[index]?.kind);
+
+  useEffect(() => {
+    if (finished || !canTypeInline) return;
+    inputRef.current?.focus();
+  }, [index, finished, canTypeInline, inputMode]);
+
+  useEffect(() => {
+    function onKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target;
+      if (target instanceof HTMLElement) {
+        if (target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable) return;
+      }
+      const current = queue[Math.min(index, queue.length - 1)];
+      if (!current || current.kind === "speed-challenge") return;
+
+      if (event.key === "Enter" && !feedback) {
+        event.preventDefault();
+        submit();
+        return;
+      }
+      if (event.code === "Space" && feedback && !locked) {
+        event.preventDefault();
+        next();
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 
   if (queue.length === 0) {
     return <p className="muted">当前筛选下没有题目，换一个难度试试。</p>;
@@ -359,6 +396,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
         <>
           <div className="answer-row">
             <input
+              ref={inputRef}
               className="answer-input"
               value={input}
               onChange={(event) => {
@@ -376,6 +414,8 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
               检查
             </button>
           </div>
+
+          <p className="muted small keyboard-hint">回车确认 · 空格进入下一题</p>
 
           {showKeyboard ? (
             <HintKeyboard sequence={sequence} progress={input.length} flashKey={flashKey} />
