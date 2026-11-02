@@ -17,7 +17,9 @@ import {
   checkExerciseAnswer,
   expectedAnswer,
   expectedKeySequence,
+  insertRetry,
   normalizeCodeInput,
+  retryOffset,
   sameFinals,
 } from "../curriculum/practice";
 import { getRepository } from "../data";
@@ -50,6 +52,8 @@ type Feedback = { status: "correct" | "wrong" | "revealed" };
 
 export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; scope: string }) {
   const [index, setIndex] = useState(0);
+  const [queue, setQueue] = useState<Exercise[]>(() => [...exercises]);
+  const retriedRef = useRef<Set<string>>(new Set());
   const [input, setInput] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [selectedOption, setSelectedOption] = useState<FlypyFinal[] | null>(null);
@@ -76,11 +80,11 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     return () => window.clearTimeout(timer);
   }, [flashKey]);
 
-  if (exercises.length === 0) {
+  if (queue.length === 0) {
     return <p className="muted">当前筛选下没有题目，换一个难度试试。</p>;
   }
 
-  const exercise = exercises[Math.min(index, exercises.length - 1)];
+  const exercise = queue[Math.min(index, queue.length - 1)];
   const maxLength =
     exercise.kind === "key-recognition"
       ? 1
@@ -152,6 +156,12 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     }
   }
 
+  function scheduleRetry(current: Exercise) {
+    if (retriedRef.current.has(current.id)) return;
+    retriedRef.current.add(current.id);
+    setQueue((existing) => insertRetry(existing, index, current, retryOffset(current.id)));
+  }
+
   function flashNextKey() {
     const next = sequence[input.length] ?? sequence[0];
     if (next) setFlashKey(next);
@@ -168,6 +178,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
       setLocked(!correct && behavior === "strict");
       playFeedback(correct ? "correct" : "wrong", sound);
       recordAttempt(exercise, correct, exercise.expectedReadings.join(" / "), selectedOption.join(" / "));
+      if (!correct) scheduleRetry(exercise);
       return;
     }
 
@@ -184,6 +195,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
 
     setStreak(0);
     flashNextKey();
+    scheduleRetry(exercise);
     if (behavior === "strict") {
       setLocked(true);
       setInput("");
@@ -192,7 +204,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
 
   function next() {
     if (locked) return;
-    if (index + 1 >= exercises.length) {
+    if (index + 1 >= queue.length) {
       setFinished(true);
       void finishSession();
       return;
@@ -214,6 +226,8 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     setLocked(false);
     setStreak(0);
     setFinished(false);
+    setQueue([...exercises]);
+    retriedRef.current.clear();
     setSummary(null);
     setSaveError(null);
     sessionIdRef.current = newSessionId();
@@ -283,7 +297,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
         <span className="badge">{KIND_LABEL[exercise.kind]}</span>
         <span className={`badge badge-${exercise.difficulty}`}>{DIFFICULTY_LABEL[exercise.difficulty]}</span>
         <span className="muted">
-          第 {index + 1} / {exercises.length} 题
+          第 {index + 1} / {queue.length} 题
         </span>
       </div>
 

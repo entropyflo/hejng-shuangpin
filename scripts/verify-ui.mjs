@@ -69,7 +69,8 @@ try {
   const stats = await page.locator(".stat-row").innerText();
   assert.match(stats, /7 天/u);
   assert.match(stats, /151 道/u);
-  assert.match(stats, /100 个/u);
+  assert.match(stats, /学习天数/u);
+  assert.match(stats, /XP/u);
   check("首页统计与冷启动", stats.replace(/\s+/gu, " "));
 
   // 首页 → 课时 → 作答
@@ -428,6 +429,46 @@ try {
   await screenshot("s3-trend.png");
   check("趋势图", "正确率折线渲染");
 
+  // 关卡状态、学习天数与 XP
+  await goto("/course");
+  const firstLesson = await page.locator(".lesson-list li").first().innerText();
+  assert.match(firstLesson, /已完成/u);
+  assert.match(firstLesson, /★★★/u);
+  await goto("/home");
+  assert.match(await page.locator(".stat-row").innerText(), /学习天数/u);
+  check("关卡状态与学习天数", firstLesson.replace(/\s+/gu, " ").slice(0, 60));
+
+  // 答错当轮插回
+  await goto("/lesson/day-2");
+  await answerKey("x");
+  const queueMeta = await page.locator(".exercise-meta .muted").innerText();
+  assert.match(queueMeta, /\/ 11/u);
+  check("答错当轮插回", queueMeta);
+
+  // 自定义文本
+  await goto("/texts");
+  await page.getByRole("button", { name: "新建文本" }).click();
+  await page.locator(".field input").fill("每日一句");
+  await page.locator("textarea.ime-input").fill("今天练习双拼。");
+  await page.getByRole("button", { name: "保存" }).click();
+  await page.locator("table.data-table").waitFor();
+  assert.match(await page.locator("table.data-table").innerText(), /每日一句/u);
+  await page.getByRole("button", { name: "练习" }).click();
+  await page.locator("section[aria-labelledby=\"practice-title\"] .ime-input").fill("今天练习双拼。");
+  await page.locator("section[aria-labelledby=\"practice-title\"] .feedback-correct").first().waitFor();
+  await goto("/texts");
+  assert.match(await page.locator("table.data-table").innerText(), /每日一句/u);
+  check("自定义文本保存与练习", "保存后刷新仍在，练习完成");
+
+  // 混合训练加权
+  await goto("/mixed");
+  await page.locator(".exercise-card").waitFor();
+  assert.match(await page.locator(".filter-row").innerText(), /薄弱加权/u);
+  assert.match(await page.locator(".filter-row").innerText(), /共 20 题/u);
+  await page.getByRole("button", { name: "完全随机" }).click();
+  assert.match(await page.locator(".filter-row").innerText(), /共 20 题/u);
+  check("混合训练加权抽题", "薄弱加权/随机切换，20 题");
+
   // 备份导出 / 清空 / 导入恢复
   await goto("/settings");
   const downloadPromise = page.waitForEvent("download");
@@ -436,8 +477,9 @@ try {
   const backupPath = path.join(os.tmpdir(), `xiaohe-backup-${Date.now()}.json`);
   await download.saveAs(backupPath);
   const backup = JSON.parse(readFileSync(backupPath, "utf8"));
-  assert.equal(backup.schemaVersion, 2);
+  assert.equal(backup.schemaVersion, 3);
   assert.ok(backup.counts.sessions >= 1);
+  assert.ok(backup.counts.texts >= 1);
   assert.match(backup.checksum, /^[0-9a-f]{8}$/u);
   check("导出备份", `${backup.counts.attempts} 条作答 / ${backup.counts.sessions} 次会话`);
 

@@ -1,5 +1,5 @@
 import type { BackupData } from "./backup";
-import type { Attempt, ComparisonRecord, MasteryRecord, PracticeSession } from "./types";
+import type { Attempt, ComparisonRecord, CustomText, MasteryRecord, PracticeSession } from "./types";
 
 export interface TrainingRepository {
   addAttempt(attempt: Attempt): Promise<void>;
@@ -10,6 +10,9 @@ export interface TrainingRepository {
   putMastery(record: MasteryRecord): Promise<void>;
   listDue(now: number): Promise<MasteryRecord[]>;
   saveComparison(record: ComparisonRecord): Promise<void>;
+  listTexts(): Promise<CustomText[]>;
+  saveText(text: CustomText): Promise<void>;
+  deleteText(id: string): Promise<void>;
   listComparisons(limit: number): Promise<ComparisonRecord[]>;
   exportAll(): Promise<BackupData>;
   replaceAll(data: BackupData): Promise<void>;
@@ -21,6 +24,7 @@ export class MemoryTrainingRepository implements TrainingRepository {
   private sessions: PracticeSession[] = [];
   private mastery = new Map<string, MasteryRecord>();
   private comparisons: ComparisonRecord[] = [];
+  private texts = new Map<string, CustomText>();
 
   async addAttempt(attempt: Attempt): Promise<void> {
     this.attempts.push(attempt);
@@ -62,12 +66,25 @@ export class MemoryTrainingRepository implements TrainingRepository {
     return [...this.comparisons].sort((left, right) => right.at - left.at).slice(0, limit);
   }
 
+  async listTexts(): Promise<CustomText[]> {
+    return [...this.texts.values()].sort((left, right) => right.updatedAt - left.updatedAt);
+  }
+
+  async saveText(text: CustomText): Promise<void> {
+    this.texts.set(text.id, text);
+  }
+
+  async deleteText(id: string): Promise<void> {
+    this.texts.delete(id);
+  }
+
   async exportAll(): Promise<BackupData> {
     return {
       attempts: [...this.attempts],
       sessions: [...this.sessions],
       mastery: [...this.mastery.values()],
       comparisons: [...this.comparisons],
+      texts: [...this.texts.values()],
     };
   }
 
@@ -76,6 +93,7 @@ export class MemoryTrainingRepository implements TrainingRepository {
     this.sessions = [...data.sessions];
     this.mastery = new Map(data.mastery.map((record) => [record.knowledgeId, record]));
     this.comparisons = [...data.comparisons];
+    this.texts = new Map(data.texts.map((text) => [text.id, text]));
   }
 
   async clear(): Promise<void> {
@@ -83,5 +101,6 @@ export class MemoryTrainingRepository implements TrainingRepository {
     this.sessions = [];
     this.mastery.clear();
     this.comparisons = [];
+    this.texts.clear();
   }
 }

@@ -46,6 +46,7 @@ function sampleData(): BackupData {
       },
     ],
     comparisons: [],
+    texts: [],
   };
 }
 
@@ -59,7 +60,7 @@ describe("备份序列化", () => {
     const payload = createBackup(sampleData(), 123);
     expect(payload.schemaVersion).toBe(BACKUP_SCHEMA_VERSION);
     expect(payload.exportedAt).toBe(123);
-    expect(payload.counts).toEqual({ attempts: 1, sessions: 1, mastery: 1, comparisons: 0 });
+    expect(payload.counts).toEqual({ attempts: 1, sessions: 1, mastery: 1, comparisons: 0, texts: 0 });
     expect(payload.checksum).toMatch(/^[0-9a-f]{8}$/u);
   });
 });

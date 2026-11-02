@@ -40,13 +40,19 @@ export function PracticePage({ focusKey }: { focusKey?: string }) {
             ? "只抽与该键相关的题目；答错的知识点会按短间隔回到复习队列。"
             : "按难度从整个题库抽题。抽题结果由 seed 决定，同一个 seed 可以重现同一组题。"}
         </p>
-        {focusKey ? (
-          <div className="actions">
+        <div className="actions">
+          {focusKey ? (
             <Link to="/practice" className="secondary">
               返回全部练习
             </Link>
-          </div>
-        ) : null}
+          ) : null}
+          <Link to="/mixed" className="secondary">
+            混合训练
+          </Link>
+          <Link to="/texts" className="secondary">
+            自定义文本
+          </Link>
+        </div>
       </header>
 
       <section className="panel">

@@ -1,12 +1,14 @@
-import type { Attempt, ComparisonRecord, MasteryRecord, PracticeSession } from "./types";
+import type { Attempt, ComparisonRecord, CustomText, MasteryRecord, PracticeSession } from "./types";
 
-export const BACKUP_SCHEMA_VERSION = 2;
+export const BACKUP_SCHEMA_VERSION = 3;
+const SUPPORTED_VERSIONS = [2, 3];
 
 export type BackupData = {
   attempts: Attempt[];
   sessions: PracticeSession[];
   mastery: MasteryRecord[];
   comparisons: ComparisonRecord[];
+  texts: CustomText[];
 };
 
 export type BackupPayload = {
@@ -17,7 +19,7 @@ export type BackupPayload = {
   data: BackupData;
 };
 
-const DATA_KEYS: Array<keyof BackupData> = ["attempts", "sessions", "mastery", "comparisons"];
+const DATA_KEYS: Array<keyof BackupData> = ["attempts", "sessions", "mastery", "comparisons", "texts"];
 
 export function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -53,6 +55,7 @@ export function createBackup(data: BackupData, now = Date.now()): BackupPayload 
       sessions: data.sessions.length,
       mastery: data.mastery.length,
       comparisons: data.comparisons.length,
+      texts: data.texts.length,
     },
     data,
   };
@@ -76,7 +79,7 @@ export function parseBackup(raw: string): BackupParseResult {
 
   const payload = parsed as Partial<BackupPayload>;
 
-  if (payload.schemaVersion !== BACKUP_SCHEMA_VERSION) {
+  if (!SUPPORTED_VERSIONS.includes(payload.schemaVersion as number)) {
     return { ok: false, error: `备份版本不受支持：${String(payload.schemaVersion)}。` };
   }
 
@@ -85,6 +88,7 @@ export function parseBackup(raw: string): BackupParseResult {
   }
 
   for (const key of DATA_KEYS) {
+    if (key === "texts" && payload.schemaVersion === 2) continue;
     if (!Array.isArray(payload.data[key])) {
       return { ok: false, error: `备份缺少 ${key} 列表。` };
     }
@@ -94,13 +98,37 @@ export function parseBackup(raw: string): BackupParseResult {
     return { ok: false, error: "备份校验失败，文件可能被修改或损坏。" };
   }
 
+  const data: BackupData = {
+    attempts: payload.data.attempts as BackupData["attempts"],
+    sessions: payload.data.sessions as BackupData["sessions"],
+    mastery: payload.data.mastery as BackupData["mastery"],
+    comparisons: payload.data.comparisons as BackupData["comparisons"],
+    texts: (payload.data.texts as BackupData["texts"] | undefined) ?? [],
+  };
+
   if (payload.counts) {
     for (const key of DATA_KEYS) {
-      if (payload.counts[key] !== payload.data[key].length) {
+      if (key === "texts" && payload.schemaVersion === 2) continue;
+      if (payload.counts[key] !== data[key].length) {
         return { ok: false, error: `${key} 数量与声明不一致。` };
       }
     }
   }
 
-  return { ok: true, payload: payload as BackupPayload };
+  return {
+    ok: true,
+    payload: {
+      schemaVersion: BACKUP_SCHEMA_VERSION,
+      exportedAt: payload.exportedAt ?? Date.now(),
+      checksum: payload.checksum as string,
+      counts: {
+        attempts: data.attempts.length,
+        sessions: data.sessions.length,
+        mastery: data.mastery.length,
+        comparisons: data.comparisons.length,
+        texts: data.texts.length,
+      },
+      data,
+    },
+  };
 }

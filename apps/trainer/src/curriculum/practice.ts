@@ -133,3 +133,18 @@ export const KEY_FINGERS: Record<string, string> = {
 export function fingerForKey(key: string): string | null {
   return KEY_FINGERS[key.toLowerCase()] ?? null;
 }
+
+export function retryOffset(exerciseId: string): number {
+  let hash = 0;
+  for (const character of exerciseId) {
+    hash = (Math.imul(hash, 31) + character.charCodeAt(0)) >>> 0;
+  }
+  return 2 + (hash % 4);
+}
+
+export function insertRetry<T>(queue: readonly T[], currentIndex: number, item: T, offset: number): T[] {
+  const next = [...queue];
+  const target = Math.min(next.length, currentIndex + 1 + Math.max(1, offset));
+  next.splice(target, 0, item);
+  return next;
+}

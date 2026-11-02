@@ -62,8 +62,8 @@ export function buildDailyPlan(input: {
   items.push({
     kind: "mixed",
     title: "混合训练",
-    detail: "从整个题库按难度抽题，可换一批。",
-    to: "/practice",
+    detail: "按答错次数与反应时加权抽题，可换一批。",
+    to: "/mixed",
   });
 
   return items;

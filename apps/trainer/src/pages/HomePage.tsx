@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { readLastLessonId } from "../app/storage";
-import { CURRICULUM, KNOWLEDGE_ITEMS, LESSONS } from "../curriculum/content";
+import { CURRICULUM, LESSONS } from "../curriculum/content";
 import { getRepository } from "../data";
 import { buildDailyPlan } from "../review/plan";
+import { LESSON_STATUS_LABEL, summarizeLessonProgress, type LessonProgress } from "../review/progress";
+import { summarizeActivity, type ActivitySummary } from "../review/activity";
+import { starsToText } from "../data/metrics";
 import { Link } from "../ui/Link";
 
 const ENTRIES = [
   { to: "/practice", title: "自由训练", body: "按难度抽题，随时开始，不必先选课。" },
   { to: "/keyboard", title: "键位映射", body: "26 个字母键、共享韵母与十二个零声母。" },
   { to: "/stats", title: "学习统计", body: "热力图与 CPM 将在 S3 接入，目前没有数据。" },
+  { to: "/texts", title: "自定义文本", body: "粘贴自己的句子，用系统输入法练习。" },
   { to: "/settings", title: "设置与修正", body: "切换主题，修改多音字读音并保存在本机。" },
 ];
 
@@ -17,16 +21,27 @@ export function HomePage() {
   const lastLessonId = readLastLessonId(window.localStorage, lessonIds);
   const resume = LESSONS.find((lesson) => lesson.id === lastLessonId) ?? LESSONS[0];
   const [dueCount, setDueCount] = useState<number | null>(null);
+  const [progress, setProgress] = useState<Map<string, LessonProgress> | null>(null);
+  const [activity, setActivity] = useState<ActivitySummary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    getRepository()
-      .listDue(Date.now())
-      .then((due) => {
-        if (!cancelled) setDueCount(due.length);
+    const totals = Object.fromEntries(LESSONS.map((lesson) => [lesson.id, lesson.exerciseIds.length]));
+    Promise.all([
+      getRepository().listDue(Date.now()),
+      getRepository().listSessions(200),
+      getRepository().listAttempts(2000),
+    ])
+      .then(([due, sessions, attempts]) => {
+        if (cancelled) return;
+        setDueCount(due.length);
+        setProgress(summarizeLessonProgress(sessions, totals));
+        setActivity(summarizeActivity(sessions, attempts));
       })
       .catch(() => {
-        if (!cancelled) setDueCount(0);
+        if (cancelled) return;
+        setDueCount(0);
+        setProgress(new Map());
       });
     return () => {
       cancelled = true;
@@ -63,8 +78,12 @@ export function HomePage() {
             <dd>{CURRICULUM.exercises.length} 道</dd>
           </div>
           <div>
-            <dt>知识点</dt>
-            <dd>{KNOWLEDGE_ITEMS.length} 个</dd>
+            <dt>学习天数</dt>
+            <dd>{activity ? `${activity.studyDays} 天` : "—"}</dd>
+          </div>
+          <div>
+            <dt>XP</dt>
+            <dd>{activity ? activity.xp : "—"}</dd>
           </div>
           <div>
             <dt>上次学习</dt>
@@ -107,18 +126,21 @@ export function HomePage() {
         </div>
 
         <ol className="course-grid">
-          {LESSONS.map((lesson) => (
-            <li key={lesson.id} className={lesson.id === resume.id ? "is-resume" : undefined}>
-              <Link to={`/lesson/${lesson.id}`}>
-                <span>第 {lesson.day} 天</span>
-                <strong>{lesson.title}</strong>
-                <small>
-                  {lesson.exerciseIds.length} 道练习
-                  {lesson.id === resume.id ? " · 上次学到" : ""}
-                </small>
-              </Link>
-            </li>
-          ))}
+          {LESSONS.map((lesson) => {
+            const state = progress?.get(lesson.id);
+            return (
+              <li key={lesson.id} className={lesson.id === resume.id ? "is-resume" : undefined}>
+                <Link to={`/lesson/${lesson.id}`}>
+                  <span>第 {lesson.day} 天</span>
+                  <strong>{lesson.title}</strong>
+                  <small>
+                    {state ? `${LESSON_STATUS_LABEL[state.status]} · ${starsToText(state.bestStars)}` : "未练"}
+                    {lesson.id === resume.id ? " · 上次学到" : ""}
+                  </small>
+                </Link>
+              </li>
+            );
+          })}
         </ol>
       </section>
 

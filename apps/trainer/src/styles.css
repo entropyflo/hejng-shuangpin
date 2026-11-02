@@ -743,3 +743,5 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   transform: translateX(-50%);
 }
 .update-banner .secondary { padding: 6px 12px; font-size: 0.82rem; }
+
+.field-wide { max-width: 100%; }

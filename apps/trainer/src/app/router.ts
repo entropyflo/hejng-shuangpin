@@ -11,6 +11,8 @@ export type Route =
   | { name: "stats" }
   | { name: "compare" }
   | { name: "settings" }
+  | { name: "texts" }
+  | { name: "mixed" }
   | { name: "notFound"; path: string };
 
 const LESSON_PATTERN = /^\/lesson\/([A-Za-z0-9-]+)$/u;
@@ -36,6 +38,8 @@ export function parseRoute(pathname: string): Route {
   if (path === "/stats") return { name: "stats" };
   if (path === "/compare") return { name: "compare" };
   if (path === "/settings") return { name: "settings" };
+  if (path === "/texts") return { name: "texts" };
+  if (path === "/mixed") return { name: "mixed" };
 
   return { name: "notFound", path };
 }
@@ -62,6 +66,10 @@ export function pathFor(route: Route): string {
       return "/compare";
     case "settings":
       return "/settings";
+    case "texts":
+      return "/texts";
+    case "mixed":
+      return "/mixed";
     case "notFound":
       return route.path;
   }

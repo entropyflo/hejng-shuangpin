@@ -4,15 +4,18 @@ import { evaluateCommitted, type CommittedEvaluation } from "../curriculum/ime";
 
 type ImePracticeProps = {
   text: string;
+  onEvaluation?: (evaluation: CommittedEvaluation) => void;
 };
 
-export function ImePractice({ text }: ImePracticeProps) {
+export function ImePractice({ text, onEvaluation }: ImePracticeProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [evaluation, setEvaluation] = useState<CommittedEvaluation | null>(null);
   const [composing, setComposing] = useState(false);
 
   function judge(value: string) {
-    setEvaluation(evaluateCommitted(text, value));
+    const next = evaluateCommitted(text, value);
+    setEvaluation(next);
+    onEvaluation?.(next);
   }
 
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>) {

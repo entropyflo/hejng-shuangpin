@@ -6,10 +6,12 @@ import { CoursePage } from "../pages/CoursePage";
 import { HomePage } from "../pages/HomePage";
 import { KeyboardPage } from "../pages/KeyboardPage";
 import { LessonPage } from "../pages/LessonPage";
+import { MixedPage } from "../pages/MixedPage";
 import { PracticePage } from "../pages/PracticePage";
 import { ReviewPage } from "../pages/ReviewPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { StatsPage } from "../pages/StatsPage";
+import { TextsPage } from "../pages/TextsPage";
 import { Layout } from "../ui/Layout";
 import { Link } from "../ui/Link";
 
@@ -45,6 +47,8 @@ function RoutedApp() {
       {route.name === "stats" ? <StatsPage /> : null}
       {route.name === "compare" ? <ComparePage /> : null}
       {route.name === "settings" ? <SettingsPage /> : null}
+      {route.name === "texts" ? <TextsPage /> : null}
+      {route.name === "mixed" ? <MixedPage /> : null}
       {route.name === "notFound" ? <NotFoundPage path={route.path} /> : null}
     </Layout>
   );

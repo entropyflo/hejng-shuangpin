@@ -51,3 +51,11 @@ export type ComparisonRecord = {
   quanpinCpm: number;
   at: number;
 };
+
+export type CustomText = {
+  id: string;
+  name: string;
+  content: string;
+  createdAt: number;
+  updatedAt: number;
+};

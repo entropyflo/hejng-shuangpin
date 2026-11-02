@@ -10,6 +10,8 @@ import {
   expectedKeySequence,
   finalGroupsByKey,
   fingerForKey,
+  insertRetry,
+  retryOffset,
   normalizeCodeInput,
   sameFinals,
   seededShuffle,
@@ -153,5 +155,25 @@ describe("指法映射", () => {
     expect(fingerForKey("p")).toBe("右小指");
     expect(fingerForKey("P")).toBe("右小指");
     expect(fingerForKey("1")).toBeNull();
+  });
+});
+
+describe("答错当轮插回", () => {
+  it("插回位置在 2～5 题之后", () => {
+    expect(retryOffset("key-final-a")).toBeGreaterThanOrEqual(2);
+    expect(retryOffset("key-final-a")).toBeLessThanOrEqual(5);
+    expect(retryOffset("key-final-a")).toBe(retryOffset("key-final-a"));
+  });
+
+  it("插回不改变原队列", () => {
+    const queue = ["a", "b", "c", "d"];
+    const next = insertRetry(queue, 0, "a", 2);
+    expect(queue).toEqual(["a", "b", "c", "d"]);
+    expect(next).toEqual(["a", "b", "c", "a", "d"]);
+  });
+
+  it("末尾插入不会越界", () => {
+    const next = insertRetry(["a", "b"], 1, "b", 5);
+    expect(next).toEqual(["a", "b", "b"]);
   });
 });
