@@ -268,6 +268,46 @@ try {
   await page.getByRole("button", { name: "清除全部修正" }).click();
   check("多音字修正刷新后仍生效", "行 → hang / hh，随后清除");
 
+  // 专注、快捷键、指法与动画
+  await goto("/settings");
+  await page.getByRole("button", { name: /^指法提示：/u }).click();
+  await page.getByRole("button", { name: /^动画：/u }).click();
+  assert.equal(await page.locator("html").getAttribute("data-motion"), "off");
+  await page.reload({ waitUntil: "load" });
+  assert.equal(await page.locator("html").getAttribute("data-motion"), "off");
+  await page.getByRole("button", { name: /^动画：/u }).click();
+  assert.equal(await page.locator("html").getAttribute("data-motion"), "on");
+  check("动画开关与持久化", "关闭后 data-motion=off，刷新仍保持，可重新开启");
+
+  await goto("/lesson/day-1");
+  assert.ok((await page.locator(".hint-key .finger").count()) > 0);
+  await screenshot("s2-fingering.png");
+  check("指法提示", "屏幕键盘显示推荐手指");
+
+  await page.keyboard.press("f");
+  assert.equal(await page.locator(".topbar").isVisible(), false);
+  assert.equal(await page.locator(".focus-exit").isVisible(), true);
+  await screenshot("s2-focus.png");
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator(".topbar").isVisible(), true);
+  check("专注模式快捷键", "F 进入、Esc 退出，顶栏隐藏后恢复");
+
+  await page.keyboard.press("?");
+  await page.locator(".dialog").waitFor();
+  assert.match(await page.locator(".dialog").innerText(), /键盘快捷键/u);
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator(".dialog").count(), 0);
+  check("快捷键帮助", "? 打开、Esc 关闭");
+
+  await page.keyboard.press("3");
+  await page.waitForURL("**/lesson/day-3");
+  check("数字快捷键跳转", "按 3 进入第 3 天");
+
+  await page.locator(".answer-input").click();
+  await page.keyboard.press("f");
+  assert.equal(await page.locator(".topbar").isVisible(), true);
+  check("输入框内不触发快捷键", "在作答框输入 f 不进入专注");
+
   // 404
   await goto("/nope");
   assert.match(await page.locator(".page-title").innerText(), /没有这个页面/u);

@@ -1,4 +1,5 @@
 import { useRoute } from "./router";
+import { PreferencesProvider } from "./preferences";
 import { ThemeProvider } from "./theme-context";
 import { ComparePage } from "../pages/ComparePage";
 import { CoursePage } from "../pages/CoursePage";
@@ -49,7 +50,9 @@ function RoutedApp() {
 export function App() {
   return (
     <ThemeProvider>
-      <RoutedApp />
+      <PreferencesProvider>
+        <RoutedApp />
+      </PreferencesProvider>
     </ThemeProvider>
   );
 }

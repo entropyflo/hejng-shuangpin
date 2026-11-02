@@ -10,6 +10,9 @@ export const HINT_MODE_KEY = "xiaohe.hint-mode.v1";
 export const INPUT_MODE_KEY = "xiaohe.input-mode.v1";
 export const CORRECTION_MODE_KEY = "xiaohe.correction-mode.v1";
 export const AUTO_HINT_STREAK = 3;
+export const MOTION_KEY = "xiaohe.motion.v1";
+export const SOUND_KEY = "xiaohe.sound.v1";
+export const FINGERING_KEY = "xiaohe.fingering.v1";
 
 const HINT_MODES: readonly HintMode[] = ["always", "hidden", "auto"];
 const INPUT_MODES: readonly InputMode[] = ["key", "ime"];
@@ -79,3 +82,14 @@ export const CORRECTION_LABEL: Record<CorrectionMode, string> = {
   strict: "严格：答错必须按对才能继续",
   continuous: "连续：记录错误，不阻塞",
 };
+
+export function readToggle(storage: KeyValueStorage, key: string, fallback: boolean): boolean {
+  const value = storage.getItem(key);
+  if (value === "on") return true;
+  if (value === "off") return false;
+  return fallback;
+}
+
+export function writeToggle(storage: KeyValueStorage, key: string, value: boolean): void {
+  storage.setItem(key, value ? "on" : "off");
+}

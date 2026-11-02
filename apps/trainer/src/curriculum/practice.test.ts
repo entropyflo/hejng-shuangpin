@@ -9,6 +9,7 @@ import {
   expectedAnswer,
   expectedKeySequence,
   finalGroupsByKey,
+  fingerForKey,
   normalizeCodeInput,
   sameFinals,
   seededShuffle,
@@ -134,5 +135,23 @@ describe("测速前缀比对", () => {
     expect(correctPrefixLength("abc", "abcdef")).toBe(3);
     expect(correctPrefixLength("abc", "abd")).toBe(2);
     expect(correctPrefixLength("", "abc")).toBe(0);
+  });
+});
+
+describe("指法映射", () => {
+  it("26 个字母键都有推荐手指", () => {
+    const letters = "abcdefghijklmnopqrstuvwxyz".split("");
+    for (const letter of letters) {
+      expect(fingerForKey(letter)).not.toBeNull();
+    }
+  });
+
+  it("左右手分区正确", () => {
+    expect(fingerForKey("q")).toBe("左小指");
+    expect(fingerForKey("f")).toBe("左食指");
+    expect(fingerForKey("j")).toBe("右食指");
+    expect(fingerForKey("p")).toBe("右小指");
+    expect(fingerForKey("P")).toBe("右小指");
+    expect(fingerForKey("1")).toBeNull();
   });
 });

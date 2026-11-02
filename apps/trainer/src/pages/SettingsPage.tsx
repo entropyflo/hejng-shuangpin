@@ -14,6 +14,7 @@ import {
   type InputMode,
 } from "../app/settings";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
+import { usePreferences } from "../app/preferences";
 import { useThemeState } from "../app/theme-context";
 import { ReadingCorrection } from "../ui/ReadingCorrection";
 
@@ -27,6 +28,7 @@ export function SettingsPage() {
   const [hintMode, setHintMode] = useState(() => readHintMode(window.localStorage));
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const { motion, sound, fingering, setMotion, setSound, setFingering } = usePreferences();
 
   function changeHint(mode: HintMode) {
     setHintMode(mode);
@@ -124,6 +126,43 @@ export function SettingsPage() {
               {CORRECTION_LABEL[option]}
             </button>
           ))}
+        </div>
+      </section>
+
+      <section className="panel" aria-labelledby="experience-title">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">体验</p>
+            <h2 id="experience-title">动画、音效与指法</h2>
+          </div>
+          <p className="panel-note">三项都可独立关闭；关闭动画会同时停用键盘闪烁等过渡效果。</p>
+        </div>
+
+        <div className="filter-row" role="group" aria-label="体验开关">
+          <button
+            type="button"
+            className={motion ? "chip is-active" : "chip"}
+            aria-pressed={motion}
+            onClick={() => setMotion(!motion)}
+          >
+            动画：{motion ? "开" : "关"}
+          </button>
+          <button
+            type="button"
+            className={sound ? "chip is-active" : "chip"}
+            aria-pressed={sound}
+            onClick={() => setSound(!sound)}
+          >
+            音效：{sound ? "开" : "关"}
+          </button>
+          <button
+            type="button"
+            className={fingering ? "chip is-active" : "chip"}
+            aria-pressed={fingering}
+            onClick={() => setFingering(!fingering)}
+          >
+            指法提示：{fingering ? "开" : "关"}
+          </button>
         </div>
       </section>
 

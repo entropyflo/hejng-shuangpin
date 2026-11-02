@@ -19,6 +19,8 @@ import {
   sameFinals,
 } from "../curriculum/practice";
 import type { FlypyFinal } from "../scheme/flypy";
+import { usePreferences } from "../app/preferences";
+import { playFeedback } from "./feedbackSound";
 import { HintKeyboard } from "./HintKeyboard";
 import { ImePractice } from "./ImePractice";
 import { SpeedChallenge } from "./SpeedChallenge";
@@ -51,6 +53,7 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const { sound } = usePreferences();
 
   useEffect(() => {
     if (!flashKey) return;
@@ -94,6 +97,7 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
       if (!selectedOption) return;
       const correct = sameFinals(selectedOption, exercise.expectedReadings);
       setFeedback({ status: correct ? "correct" : "wrong" });
+      playFeedback(correct ? "correct" : "wrong", sound);
       setStreak(correct ? streak + 1 : 0);
       setLocked(!correct && behavior === "strict");
       return;
@@ -101,6 +105,7 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
 
     const result = checkExerciseAnswer(exercise, input);
     setFeedback({ status: result.correct ? "correct" : "wrong" });
+    playFeedback(result.correct ? "correct" : "wrong", sound);
     if (result.correct) {
       setStreak(streak + 1);
       setLocked(false);

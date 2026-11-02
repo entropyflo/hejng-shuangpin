@@ -3,18 +3,23 @@ import {
   AUTO_HINT_STREAK,
   CORRECTION_MODE_KEY,
   HINT_MODE_KEY,
+  FINGERING_KEY,
   INPUT_MODE_KEY,
+  MOTION_KEY,
+  SOUND_KEY,
   parseCorrectionMode,
   parseInputMode,
   parseHintMode,
   readCorrectionMode,
   readHintMode,
   readInputMode,
+  readToggle,
   resolveCorrection,
   shouldShowHint,
   writeCorrectionMode,
   writeHintMode,
   writeInputMode,
+  writeToggle,
 } from "./settings";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -99,5 +104,23 @@ describe("输入方式", () => {
     writeInputMode(storage, "ime");
     expect(storage.getItem(INPUT_MODE_KEY)).toBe("ime");
     expect(readInputMode(storage)).toBe("ime");
+  });
+});
+
+describe("动画、音效与指法开关", () => {
+  it("未设置时使用默认值", () => {
+    const storage = memoryStorage();
+    expect(readToggle(storage, MOTION_KEY, true)).toBe(true);
+    expect(readToggle(storage, SOUND_KEY, false)).toBe(false);
+    expect(readToggle(storage, FINGERING_KEY, false)).toBe(false);
+  });
+
+  it("写入 on/off 后可读回", () => {
+    const storage = memoryStorage();
+    writeToggle(storage, MOTION_KEY, false);
+    writeToggle(storage, SOUND_KEY, true);
+    expect(storage.getItem(MOTION_KEY)).toBe("off");
+    expect(readToggle(storage, MOTION_KEY, true)).toBe(false);
+    expect(readToggle(storage, SOUND_KEY, false)).toBe(true);
   });
 });

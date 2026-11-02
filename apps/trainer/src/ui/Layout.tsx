@@ -1,17 +1,72 @@
-import type { ReactNode } from "react";
-import { NAV_ITEMS, useRoute } from "../app/router";
+import { useEffect, useState, type ReactNode } from "react";
+import { NAV_ITEMS, navigate, useRoute } from "../app/router";
+import { usePreferences } from "../app/preferences";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { useThemeState } from "../app/theme-context";
 import { Link } from "./Link";
 
 const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 
+const SHORTCUTS = [
+  { keys: "?", action: "打开或关闭本帮助" },
+  { keys: "F", action: "进入或退出专注模式" },
+  { keys: "Esc", action: "退出专注模式或关闭帮助" },
+  { keys: "1 – 7", action: "跳到第 N 天课程" },
+  { keys: "Tab / Enter", action: "正常焦点移动与激活，不被拦截" },
+];
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.tagName === "INPUT" ||
+    target.tagName === "TEXTAREA" ||
+    target.tagName === "SELECT" ||
+    target.isContentEditable
+  );
+}
+
 export function Layout({ children }: { children: ReactNode }) {
   const route = useRoute();
   const { preference, setPreference } = useThemeState();
+  const { focus, setFocus, toggleFocus } = usePreferences();
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+
+      if (event.key === "Escape") {
+        if (helpOpen) setHelpOpen(false);
+        else if (focus) setFocus(false);
+        return;
+      }
+
+      if (isTypingTarget(event.target)) return;
+
+      if (event.key === "?") {
+        event.preventDefault();
+        setHelpOpen((current) => !current);
+        return;
+      }
+
+      if (event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        toggleFocus();
+        return;
+      }
+
+      if (/^[1-7]$/u.test(event.key)) {
+        event.preventDefault();
+        navigate(`/lesson/day-${event.key}`);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [focus, helpOpen, setFocus, toggleFocus]);
 
   return (
-    <div className="app-shell">
+    <div className={focus ? "app-shell is-focus" : "app-shell"}>
       <a className="skip-link" href="#content">
         跳到主要内容
       </a>
@@ -34,21 +89,35 @@ export function Layout({ children }: { children: ReactNode }) {
           ))}
         </nav>
 
-        <label className="theme-select">
-          <span className="visually-hidden">主题</span>
-          <select
-            value={preference}
-            onChange={(event) => setPreference(event.target.value as ThemePreference)}
-            aria-label="主题"
-          >
-            {THEME_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {THEME_LABEL[option]}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="topbar-actions">
+          <button type="button" className="ghost-button" onClick={toggleFocus} aria-pressed={focus}>
+            专注
+          </button>
+          <button type="button" className="ghost-button" onClick={() => setHelpOpen(true)} aria-haspopup="dialog">
+            快捷键
+          </button>
+          <label className="theme-select">
+            <span className="visually-hidden">主题</span>
+            <select
+              value={preference}
+              onChange={(event) => setPreference(event.target.value as ThemePreference)}
+              aria-label="主题"
+            >
+              {THEME_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {THEME_LABEL[option]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </header>
+
+      {focus ? (
+        <button type="button" className="focus-exit" onClick={() => setFocus(false)}>
+          退出专注（Esc）
+        </button>
+      ) : null}
 
       <main id="content" className="page">
         {children}
@@ -59,6 +128,34 @@ export function Layout({ children }: { children: ReactNode }) {
           课程、题库与讲解均为本项目原创。计时测速、间隔复习、热力图与离线安装属于后续阶段，本页不会用占位数据冒充成绩。
         </p>
       </footer>
+
+      {helpOpen ? (
+        <div className="dialog-backdrop" role="presentation" onClick={() => setHelpOpen(false)}>
+          <div
+            className="dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shortcuts-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="shortcuts-title">键盘快捷键</h2>
+            <dl className="shortcut-list">
+              {SHORTCUTS.map((item) => (
+                <div key={item.keys}>
+                  <dt>
+                    <kbd>{item.keys}</kbd>
+                  </dt>
+                  <dd>{item.action}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="muted small">在输入框、文本域或下拉框内不会触发这些快捷键。</p>
+            <button type="button" className="secondary" onClick={() => setHelpOpen(false)}>
+              关闭
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
