@@ -5,6 +5,7 @@ import { useServiceWorkerUpdate } from "../app/swUpdate";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { useThemeState } from "../app/theme-context";
 import { Link } from "./Link";
+import { Icon } from "./Icon";
 
 const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 
@@ -74,8 +75,8 @@ export function Layout({ children }: { children: ReactNode }) {
       </a>
       <header className="topbar">
         <Link to="/home" className="brand">
-          鹤径
-          <span>小鹤双拼</span>
+          <span className="brand-mark" aria-hidden="true">鹤</span>
+          <span className="brand-type">鹤径<small>小鹤双拼</small></span>
         </Link>
 
         <nav className="main-nav" aria-label="主导航">
@@ -100,7 +101,7 @@ export function Layout({ children }: { children: ReactNode }) {
             aria-label="专注模式"
             title="专注模式（F）"
           >
-            ◎
+            <Icon name="focus" />
           </button>
           <button
             type="button"
@@ -110,10 +111,10 @@ export function Layout({ children }: { children: ReactNode }) {
             aria-label="快捷键"
             title="快捷键（?）"
           >
-            ?
+            <Icon name="help" />
           </button>
           <Link to="/settings" className="ghost-button" aria-label="设置" title="设置">
-            ⚙
+            <Icon name="settings" />
           </Link>
           <label className="theme-select">
             <span className="visually-hidden">主题</span>
@@ -138,7 +139,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </button>
       ) : null}
 
-      <main id="content" className="page">
+      <main id="content" className={`page page-${route.name}`}>
         {children}
       </main>
 

@@ -251,8 +251,22 @@ try {
   await waitForFocus();
   const overflow = await page.locator(".mapping-keyboard").evaluate((element) => element.scrollWidth - element.clientWidth);
   assert.ok(overflow <= 1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await goto("/home");
+  const mobilePath = await page.locator(".course-grid li").evaluateAll((items) =>
+    items.slice(0, 2).map((element) => {
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y };
+    }),
+  );
+  assert.ok(Math.abs(mobilePath[0].x - mobilePath[1].x) < 2);
+  assert.ok(mobilePath[1].y > mobilePath[0].y);
+  const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  assert.ok(pageOverflow <= 1);
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  await screenshot("v2-home-mobile.png");
   await page.setViewportSize({ width: 1280, height: 900 });
-  check("小屏自适应", "800px 宽下键位图无横向滚动");
+  check("小屏自适应", "800px 键位图与 390px 首页均无横向滚动，七天路径保持纵向");
 
 
 

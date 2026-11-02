@@ -53,19 +53,28 @@ export function HomePage() {
   return (
     <>
       <section className="hero">
-        <p className="eyebrow">七天路径全部开放 · 离线可用</p>
-        <h1>沿着鹤径，练成双拼</h1>
-        <p className="lede">
-          从认键到真实输入，按自己的节奏推进。进度只作参考，不设时间、星级或订阅门槛。
-        </p>
+        <div className="hero-copy">
+          <p className="eyebrow">七天路径全部开放 · 离线可用</p>
+          <h1>沿着鹤径，<br />练成双拼</h1>
+          <p className="lede">
+            从认键到真实输入，按自己的节奏推进。进度只作参考，不设时间、星级或订阅门槛。
+          </p>
 
-        <div className="actions">
-          <Link className="primary" to={`/lesson/${resume.id}`}>
-            {lastLessonId ? `继续第 ${resume.day} 天` : "从第 1 天开始"}
-          </Link>
-          <Link className="secondary" to="/practice">
-            自由训练
-          </Link>
+          <div className="actions">
+            <Link className="primary" to={`/lesson/${resume.id}`}>
+              {lastLessonId ? `继续第 ${resume.day} 天` : "从第 1 天开始"}
+            </Link>
+            <Link className="secondary" to="/practice">
+              自由训练
+            </Link>
+          </div>
+          <p className="hero-trust"><span aria-hidden="true">●</span> 无账号 · 无上传 · 可离线</p>
+        </div>
+
+        <div className="hero-visual" aria-hidden="true">
+          <img src="/art/hejng-crane-path-v2.webp" alt="" fetchPriority="high" />
+          <span className="hero-orbit orbit-one" />
+          <span className="hero-orbit orbit-two" />
         </div>
 
         <dl className="stat-row">
@@ -104,11 +113,10 @@ export function HomePage() {
         </div>
 
         <div className="plan-grid">
-          {plan.map((item) => (
+          {plan.map((item, index) => (
             <Link key={item.kind} to={item.to} className={`plan-card plan-${item.kind}`}>
-              <span className="plan-kind">
-                {item.kind === "review" ? "复习" : item.kind === "lesson" ? "新课" : "混合"}
-              </span>
+              <span className="plan-number" aria-hidden="true">0{index + 1}</span>
+              <span className="plan-kind">{item.kind === "review" ? "复习" : item.kind === "lesson" ? "新课" : "混合"}</span>
               <strong>{item.title}</strong>
               <span>{item.detail}</span>
             </Link>

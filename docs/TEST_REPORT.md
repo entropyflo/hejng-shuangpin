@@ -450,3 +450,17 @@ Git 基线：`7d1aa98`（本次提交前）
 | P2 | 无口诀助记 | 设置新增“口诀提示”（默认关），键帽下显示口诀字；键位页附完整口诀 | Q 显示“秋”，可开关 |
 
 回归：197 单测；56 项浏览器断言通过。截图：`s6-home-nav.png`、`s6-keyboard-noise.png`、`s6-keyboard-narrow.png`、`s6-settings.png`。
+
+## V2 视觉回归（2026-11-03）
+
+| 项目 | 结果 | 证据 |
+|---|---|---|
+| V1 可恢复基线 | PASS | 标签 `v1-workbuddy` → `cef5ee3` |
+| V2 首页与内页设计系统 | PASS | 浅色/深色首页、课时、统计、设置截图由 `npm run verify:ui` 更新 |
+| 390px 手机首页 | PASS | 无文档横向滚动；七天路径保持同 x 坐标纵向排列；`docs/evidence/v2-home-mobile.png` |
+| 800px 键位图 | PASS | 映射键盘 `scrollWidth - clientWidth <= 1` |
+| 动效无障碍 | PASS | `prefers-reduced-motion` 与应用内 `data-motion="off"` 均关闭动效 |
+| 视觉资产加载 | PASS | `/art/hejng-crane-path-v2.webp` 纳入生产构建与 Service Worker 预缓存 |
+| 功能回归 | PASS | 197 单测；完整 Chromium 回归；typecheck/build 退出码 0 |
+
+已知提示：生产构建的主 JavaScript 约 524 kB，Vite 提示可做代码分包；当前不影响离线与验收，本轮未为视觉改版引入路由加载改造。
