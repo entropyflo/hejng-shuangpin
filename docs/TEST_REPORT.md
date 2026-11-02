@@ -39,3 +39,16 @@ Git 基线：`e72fa38`
 - 状态：`PASS`
 - 用户确认：2026-11-02 明确“通过 G0”，并澄清 WorkBuddy International 即 CodeBuddy CLI，也允许调用桌面应用。
 - 下一最小任务：SCH-001，小鹤官方键位核验与金样单测。
+
+## S1 / SCH-001 增量
+
+执行日期：2026-11-02（Asia/Shanghai）
+
+| 测试 | 结果 | 证据 |
+|---|---|---|
+| SCH-T01 声母与完整韵母键位 | PASS | `flypy.test.ts` 锁定普通声母、`zh/ch/sh` 和完整韵母表；与小鹤官网、Apple 布局、Rime 规则和文本键位表交叉 |
+| SCH-T03 公开样例 | PASS | `shuang→ul`、`pin→pb`、`zhong→vs`、`wen→wf` |
+| 未知规则安全失败 | PASS | 零声母在 SCH-002 前抛 `ZERO_INITIAL_NOT_IMPLEMENTED`；未知声母/韵母抛有类型错误 |
+| 自动化回归 | PASS | `npm run typecheck` exit 0；`npm test` 2 文件/12 测试 PASS；`npm run build` exit 0 |
+
+SCH-001 不包含零声母与完整拼音正规化；这些项目保持 `NOT_RUN` 并进入 SCH-002。

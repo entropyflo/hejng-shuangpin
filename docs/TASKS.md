@@ -10,8 +10,8 @@
 | DOC-001 | 031, 032, 033, 036, 042 | ENV-001 | DONE | Codex | 每任务更新追踪 | 本追踪矩阵与进度文档 | S0 提交 |
 | PWA-S0 | 014, 020, 027, 030 | ENV-002 | DONE | Codex | S4 时完成离线实测 | 本地 build + HTTP 200 + 浏览器可见 | S0 提交 |
 | G0 | 032, 033 | ENV-001～003, PWA-S0 | DONE | 用户 | 已于 2026-11-02 批准 | `docs/TEST_REPORT.md` | G0 决策提交 |
-| SCH-001 | 001, 005, 009, 021 | G0 | IN_PROGRESS | Codex | 官方核图、金样、纯函数映射 | SCH-T01, SCH-T03 | — |
-| SCH-002 | 001, 009, 022 | SCH-001 | TODO | Codex | 零声母、ü/v 规则 | SCH-T02 | — |
+| SCH-001 | 001, 005, 009, 021 | G0 | DONE | Codex | 规则变更时复核四层来源 | SCH-T01, SCH-T03；11 项新增测试 | SCH-001 提交 |
+| SCH-002 | 001, 009, 022 | SCH-001 | IN_PROGRESS | Codex | 零声母、ü/v 与拼音正规化 | SCH-T02 | — |
 | SCH-003 | 009, 022 | SCH-001 | TODO | Codex | 离线词级读音与纠正 | SCH-T04, SCH-T05 | — |
 | CUR-001 | 001, 002, 017, 019 | SCH-001 | TODO | Codex | 七天原创课程 | CUR-T01, CUR-T02 | — |
 | CUR-002 | 005, 009 | SCH-001 | TODO | Codex | Schema 与坏题筛查 | CUR-T03 | — |
