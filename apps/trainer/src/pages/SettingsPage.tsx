@@ -6,12 +6,16 @@ import {
   MAPPING_LABEL,
   readCorrectionMode,
   readHintMode,
+  readAutoAdvance,
   readInputMode,
   readMappingMode,
+  readMnemonic,
   writeCorrectionMode,
   writeHintMode,
+  writeAutoAdvance,
   writeInputMode,
   writeMappingMode,
+  writeMnemonic,
   type CorrectionMode,
   type HintMode,
   type InputMode,
@@ -36,6 +40,8 @@ export function SettingsPage() {
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
   const [mappingMode, setMappingMode] = useState(() => readMappingMode(window.localStorage));
+  const [autoAdvance, setAutoAdvance] = useState(() => readAutoAdvance(window.localStorage));
+  const [mnemonic, setMnemonic] = useState(() => readMnemonic(window.localStorage));
   const [dataMessage, setDataMessage] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -59,6 +65,18 @@ export function SettingsPage() {
   function changeMapping(mode: MappingMode) {
     setMappingMode(mode);
     writeMappingMode(window.localStorage, mode);
+  }
+
+  function toggleAutoAdvance() {
+    const next = !autoAdvance;
+    setAutoAdvance(next);
+    writeAutoAdvance(window.localStorage, next);
+  }
+
+  function toggleMnemonic() {
+    const next = !mnemonic;
+    setMnemonic(next);
+    writeMnemonic(window.localStorage, next);
   }
 
   async function exportBackup() {
@@ -222,6 +240,22 @@ export function SettingsPage() {
             onClick={() => setSound(!sound)}
           >
             音效：{sound ? "开" : "关"}
+          </button>
+          <button
+            type="button"
+            className={autoAdvance ? "chip is-active" : "chip"}
+            aria-pressed={autoAdvance}
+            onClick={toggleAutoAdvance}
+          >
+            答对自动切题：{autoAdvance ? "开" : "关"}
+          </button>
+          <button
+            type="button"
+            className={mnemonic ? "chip is-active" : "chip"}
+            aria-pressed={mnemonic}
+            onClick={toggleMnemonic}
+          >
+            口诀提示：{mnemonic ? "开" : "关"}
           </button>
         </div>
       </section>

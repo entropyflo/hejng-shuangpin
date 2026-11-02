@@ -1,23 +1,28 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MappingMode } from "../app/settings";
-import { KEYBOARD_ROWS, buildKeyMap } from "../curriculum/practice";
+import { KEYBOARD_ROWS, buildKeyMap, mnemonicFor, specialInitialFor } from "../curriculum/practice";
 
 type MappingKeyboardProps = {
   pressedKey: string | null;
   pressedCorrect: boolean | null;
   nextKey: string | null;
   mode: MappingMode;
+  showMnemonic: boolean;
 };
 
-export function MappingKeyboard({ pressedKey, pressedCorrect, nextKey, mode }: MappingKeyboardProps) {
+export function MappingKeyboard({ pressedKey, pressedCorrect, nextKey, mode, showMnemonic }: MappingKeyboardProps) {
   const slots = useMemo(() => new Map(buildKeyMap().map((slot) => [slot.key, slot])), []);
   const [revealed, setRevealed] = useState<Set<string>>(() => new Set());
 
-  if (pressedKey && !revealed.has(pressedKey)) {
-    const next = new Set(revealed);
-    next.add(pressedKey);
-    setRevealed(next);
-  }
+  useEffect(() => {
+    if (!pressedKey) return;
+    setRevealed((current) => {
+      if (current.has(pressedKey)) return current;
+      const next = new Set(current);
+      next.add(pressedKey);
+      return next;
+    });
+  }, [pressedKey]);
 
   function showsMapping(key: string): boolean {
     return mode === "always" || revealed.has(key);
@@ -35,8 +40,11 @@ export function MappingKeyboard({ pressedKey, pressedCorrect, nextKey, mode }: M
             return (
               <div key={key} className={classes.join(" ")} aria-hidden="true">
                 <span className="mk-letter">{key.toUpperCase()}</span>
-                <span className="mk-initial">{showsMapping(key) ? slot?.initials.join(" ") || "\u00A0" : "\u00A0"}</span>
+                <span className={specialInitialFor(key) ? "mk-initial is-special" : "mk-initial"}>
+                  {showsMapping(key) && specialInitialFor(key) ? specialInitialFor(key) : "\u00A0"}
+                </span>
                 <span className="mk-final">{showsMapping(key) ? slot?.finals.join(" ") || "\u00A0" : "\u00A0"}</span>
+                {showMnemonic ? <span className="mk-mnemonic">{mnemonicFor(key) ?? "\u00A0"}</span> : null}
               </div>
             );
           })}

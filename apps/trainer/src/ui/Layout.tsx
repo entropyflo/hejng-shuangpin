@@ -92,12 +92,29 @@ export function Layout({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="topbar-actions">
-          <button type="button" className="ghost-button" onClick={toggleFocus} aria-pressed={focus}>
-            专注
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={toggleFocus}
+            aria-pressed={focus}
+            aria-label="专注模式"
+            title="专注模式（F）"
+          >
+            ◎
           </button>
-          <button type="button" className="ghost-button" onClick={() => setHelpOpen(true)} aria-haspopup="dialog">
-            快捷键
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => setHelpOpen(true)}
+            aria-haspopup="dialog"
+            aria-label="快捷键"
+            title="快捷键（?）"
+          >
+            ?
           </button>
+          <Link to="/settings" className="ghost-button" aria-label="设置" title="设置">
+            ⚙
+          </Link>
           <label className="theme-select">
             <span className="visually-hidden">主题</span>
             <select

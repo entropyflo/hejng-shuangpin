@@ -9,7 +9,7 @@ import { starsToText } from "../data/metrics";
 import { Link } from "../ui/Link";
 
 const ENTRIES = [
-  { to: "/practice", title: "自由训练", body: "按难度抽题，随时开始，不必先选课。" },
+  { to: "/practice/free", title: "自由训练", body: "按难度抽题，随时开始，不必先选课。" },
   { to: "/keyboard", title: "键位映射", body: "26 个字母键、共享韵母与十二个零声母。" },
   { to: "/stats", title: "学习统计", body: "总览、错题、键位热力图与趋势。" },
   { to: "/texts", title: "自定义文本", body: "粘贴自己的句子，用系统输入法练习。" },

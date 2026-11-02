@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { KEYBOARD_ROWS, buildKeyMap } from "../curriculum/practice";
+import { KEYBOARD_ROWS, buildKeyMap, specialInitialFor } from "../curriculum/practice";
 import { FLYPY_ZERO_INITIAL_CODES } from "../scheme/flypy";
 
 export function KeyboardMap() {
@@ -13,7 +13,7 @@ export function KeyboardMap() {
           <h2 id="keyboard-title">小鹤双拼键位图</h2>
         </div>
         <p className="panel-note">
-          键帽下方第一行是声母，第二行是韵母。共享键位必须结合完整音节判断，不能反向唯一还原。
+          普通声母与原字母键一致，不再重复标注；只有 zh/ch/sh 使用特殊键，会以橙色徽标标出。共享韵母必须结合完整音节判断。
         </p>
       </div>
 
@@ -25,7 +25,9 @@ export function KeyboardMap() {
               return (
                 <div className="key" key={key}>
                   <span className="key-cap">{key.toUpperCase()}</span>
-                  <span className="key-initial">{slot?.initials.join(" ") || "\u00A0"}</span>
+                  <span className="key-initial">
+                    {specialInitialFor(key) ? <span className="special-initial">{specialInitialFor(key)}</span> : "\u00A0"}
+                  </span>
                   <span className="key-final">{slot?.finals.join(" ") || "\u00A0"}</span>
                 </div>
               );
@@ -73,6 +75,7 @@ export function KeyboardMap() {
             <code>ü</code> 统一映射到 <kbd>V</kbd> 键；<code>j/q/x/y</code> 后的 <code>u</code> 在内部按{" "}
             <code>ü</code> 处理，因此 <code>ju → jv</code>、<code>yuan → yr</code>。
           </p>
+          <p className="muted">口诀：秋闱软月云梳翅，松拥黛粉更航安；快莺两望奏夏蛙，撇草追鱼滨鸟眠。</p>
           <p className="muted">本页键位来自已核验的方案表，来源记录见 docs/SCHEME_SOURCES.md。</p>
         </div>
       </div>

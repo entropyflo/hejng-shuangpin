@@ -5,6 +5,9 @@ import {
   HINT_MODE_KEY,
   INPUT_MODE_KEY,
   MAPPING_MODE_KEY,
+  AUTO_ADVANCE_KEY,
+  readAutoAdvance,
+  writeAutoAdvance,
   parseMappingMode,
   readMappingMode,
   writeMappingMode,
@@ -140,5 +143,19 @@ describe("键位映射显示方式", () => {
     writeMappingMode(storage, "on-press");
     expect(storage.getItem(MAPPING_MODE_KEY)).toBe("on-press");
     expect(readMappingMode(storage)).toBe("on-press");
+  });
+});
+
+describe("答对自动切题", () => {
+  it("默认开启", () => {
+    const storage = memoryStorage();
+    expect(readAutoAdvance(storage)).toBe(true);
+  });
+
+  it("可关闭并持久化", () => {
+    const storage = memoryStorage();
+    writeAutoAdvance(storage, false);
+    expect(storage.getItem(AUTO_ADVANCE_KEY)).toBe("off");
+    expect(readAutoAdvance(storage)).toBe(false);
   });
 });

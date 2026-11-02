@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { writeLastLessonId } from "../app/storage";
 import { LESSONS, QUESTION_BANK, type Exercise } from "../curriculum/content";
+import { FLYPY_ZERO_INITIAL_CODES } from "../scheme/flypy";
 import { ExerciseRunner } from "../ui/ExerciseRunner";
 import { Link } from "../ui/Link";
 
@@ -58,6 +59,36 @@ export function LessonPage({ lessonId }: { lessonId: string }) {
           )}
         </nav>
       </header>
+
+      {lesson.id === "day-4" ? (
+        <section className="panel" aria-labelledby="zero-title">
+          <div className="panel-heading">
+            <div>
+              <p className="eyebrow">速查</p>
+              <h2 id="zero-title">十二个零声母</h2>
+            </div>
+            <p className="panel-note">单韵母双打、双字母取原形、ang/eng 用特码。</p>
+          </div>
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th scope="col">音节</th>
+                <th scope="col">双拼码</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(FLYPY_ZERO_INITIAL_CODES).map(([syllable, code]) => (
+                <tr key={syllable}>
+                  <td>{syllable}</td>
+                  <td>
+                    <code>{code}</code>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
 
       <section className="panel" aria-labelledby="practice-title">
         <div className="panel-heading">

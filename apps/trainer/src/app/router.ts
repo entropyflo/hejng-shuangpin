@@ -5,6 +5,7 @@ export type Route =
   | { name: "course" }
   | { name: "lesson"; lessonId: string }
   | { name: "practice" }
+  | { name: "practiceFree" }
   | { name: "practiceKey"; key: string }
   | { name: "review" }
   | { name: "keyboard" }
@@ -29,6 +30,7 @@ export function parseRoute(pathname: string): Route {
   if (lesson) return { name: "lesson", lessonId: lesson[1] };
 
   if (path === "/practice") return { name: "practice" };
+  if (path === "/practice/free") return { name: "practiceFree" };
 
   const practiceKey = PRACTICE_KEY_PATTERN.exec(path);
   if (practiceKey) return { name: "practiceKey", key: practiceKey[1] };
@@ -54,6 +56,8 @@ export function pathFor(route: Route): string {
       return `/lesson/${route.lessonId}`;
     case "practice":
       return "/practice";
+    case "practiceFree":
+      return "/practice/free";
     case "practiceKey":
       return `/practice/key/${route.key}`;
     case "review":
@@ -107,10 +111,6 @@ export function useRoute(): Route {
 export const NAV_ITEMS: ReadonlyArray<{ route: Route["name"]; label: string; path: string }> = [
   { route: "home", label: "首页", path: "/home" },
   { route: "course", label: "课程", path: "/course" },
-  { route: "review", label: "复习", path: "/review" },
-  { route: "practice", label: "自由训练", path: "/practice" },
-  { route: "keyboard", label: "键位", path: "/keyboard" },
+  { route: "practice", label: "练习", path: "/practice" },
   { route: "stats", label: "统计", path: "/stats" },
-  { route: "compare", label: "对比", path: "/compare" },
-  { route: "settings", label: "设置", path: "/settings" },
 ];

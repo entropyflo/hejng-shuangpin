@@ -7,6 +7,7 @@ import { HomePage } from "../pages/HomePage";
 import { KeyboardPage } from "../pages/KeyboardPage";
 import { LessonPage } from "../pages/LessonPage";
 import { MixedPage } from "../pages/MixedPage";
+import { PracticeHubPage } from "../pages/PracticeHubPage";
 import { PracticePage } from "../pages/PracticePage";
 import { ReviewPage } from "../pages/ReviewPage";
 import { SettingsPage } from "../pages/SettingsPage";
@@ -41,7 +42,8 @@ function RoutedApp() {
       {route.name === "course" ? <CoursePage /> : null}
       {route.name === "lesson" ? <LessonPage lessonId={route.lessonId} /> : null}
       {route.name === "review" ? <ReviewPage /> : null}
-      {route.name === "practice" ? <PracticePage /> : null}
+      {route.name === "practice" ? <PracticeHubPage /> : null}
+      {route.name === "practiceFree" ? <PracticePage /> : null}
       {route.name === "practiceKey" ? <PracticePage focusKey={route.key} /> : null}
       {route.name === "keyboard" ? <KeyboardPage /> : null}
       {route.name === "stats" ? <StatsPage /> : null}

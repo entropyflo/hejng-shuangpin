@@ -5,8 +5,10 @@ import {
   INPUT_LABEL,
   readCorrectionMode,
   readHintMode,
+  readAutoAdvance,
   readInputMode,
   readMappingMode,
+  readMnemonic,
   resolveCorrection,
   shouldShowHint,
   writeInputMode,
@@ -59,6 +61,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [index, setIndex] = useState(0);
   const [queue, setQueue] = useState<Exercise[]>(() => [...exercises]);
   const retriedRef = useRef<Set<string>>(new Set());
+  const wrongRef = useRef<Exercise[]>([]);
   const [input, setInput] = useState("");
   const valueRef = useRef("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -73,16 +76,26 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [locked, setLocked] = useState(false);
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
   const [mappingMode] = useState(() => readMappingMode(window.localStorage));
+  const [autoAdvance] = useState(() => readAutoAdvance(window.localStorage));
+  const [showMnemonic] = useState(() => readMnemonic(window.localStorage));
+  const [imeWarning, setImeWarning] = useState(false);
   const [summary, setSummary] = useState<PracticeSession | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const { sound } = usePreferences();
 
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const advanceTimer = useRef<number | null>(null);
   const sessionIdRef = useRef(newSessionId());
   const sessionStartRef = useRef(Date.now());
   const questionStartRef = useRef(Date.now());
   const attemptsRef = useRef<Attempt[]>([]);
   const cpmRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (advanceTimer.current !== null) window.clearTimeout(advanceTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!flashKey) return;
@@ -133,6 +146,22 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const showKeyboard = sequence.length > 0 && (shouldShowHint(hintMode, streak) || flashKey !== null);
   const useIme = inputMode === "ime" && exercise.kind === "text-typing";
 
+  function clearAdvance() {
+    if (advanceTimer.current !== null) {
+      window.clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
+  }
+
+  function scheduleAdvance() {
+    if (!autoAdvance) return;
+    clearAdvance();
+    advanceTimer.current = window.setTimeout(() => {
+      advanceTimer.current = null;
+      next();
+    }, 280);
+  }
+
   function updateValue(next: string) {
     valueRef.current = next;
     setInput(next);
@@ -141,6 +170,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   function changeInputMode(mode: InputMode) {
     setInputMode(mode);
     writeInputMode(window.localStorage, mode);
+    clearAdvance();
     updateValue("");
     setFeedback(null);
     setPressedKey(null);
@@ -219,7 +249,15 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     setLocked(!correct && behavior === "strict");
     playFeedback(correct ? "correct" : "wrong", sound);
     recordAttempt(exercise, correct, exercise.expectedReadings.join(" / "), option.join(" / "));
-    if (!correct) scheduleRetry(exercise);
+    if (!correct && !wrongRef.current.some((item) => item.id === exercise.id)) {
+      wrongRef.current.push(exercise);
+    }
+    if (correct) {
+      scheduleAdvance();
+    } else {
+      clearAdvance();
+      scheduleRetry(exercise);
+    }
   }
 
   function submit(value = input) {
@@ -229,13 +267,18 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     setFeedback({ status: result.correct ? "correct" : "wrong" });
     playFeedback(result.correct ? "correct" : "wrong", sound);
     recordAttempt(exercise, result.correct, result.expected, normalizeCodeInput(value));
+    if (!result.correct && !wrongRef.current.some((item) => item.id === exercise.id)) {
+      wrongRef.current.push(exercise);
+    }
 
     if (result.correct) {
       setStreak(streak + 1);
       setLocked(false);
+      scheduleAdvance();
       return;
     }
 
+    clearAdvance();
     setStreak(0);
     flashNextKey();
     scheduleRetry(exercise);
@@ -246,6 +289,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   }
 
   function next() {
+    clearAdvance();
     if (locked) return;
     if (index + 1 >= queue.length) {
       setFinished(true);
@@ -262,7 +306,34 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     setLocked(false);
   }
 
+  function retrainWrong() {
+    const wrong = wrongRef.current;
+    if (wrong.length === 0) return;
+    clearAdvance();
+    setQueue([...wrong]);
+    setIndex(0);
+    updateValue("");
+    setFeedback(null);
+    setSelectedOption(null);
+    setFlashKey(null);
+    setPressedKey(null);
+    setPressedCorrect(null);
+    setLocked(false);
+    setStreak(0);
+    setFinished(false);
+    setSummary(null);
+    setSaveError(null);
+    sessionIdRef.current = newSessionId();
+    sessionStartRef.current = Date.now();
+    questionStartRef.current = Date.now();
+    attemptsRef.current = [];
+    cpmRef.current = null;
+    retriedRef.current.clear();
+    wrongRef.current = [];
+  }
+
   function restart() {
+    clearAdvance();
     setIndex(0);
     updateValue("");
     setFeedback(null);
@@ -275,6 +346,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     setFinished(false);
     setQueue([...exercises]);
     retriedRef.current.clear();
+    wrongRef.current = [];
     setSummary(null);
     setSaveError(null);
     sessionIdRef.current = newSessionId();
@@ -292,10 +364,20 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Backspace") {
+      event.preventDefault();
+      updateValue(valueRef.current.slice(0, -1));
+      setPressedKey(null);
+      setPressedCorrect(null);
+      setFeedback(null);
+      return;
+    }
+
     const match = /^Key([A-Z])$/u.exec(event.code);
     if (!match) return;
     event.preventDefault();
     const letter = match[1].toLowerCase();
+    setImeWarning(false);
     const current = valueRef.current;
     const next = (current + letter).slice(0, maxLength);
     setPressedKey(letter);
@@ -334,6 +416,16 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
           </dl>
         ) : null}
         <p className="muted small">{saveError ?? "记录已保存到本机数据库（IndexedDB）。"}</p>
+        {wrongRef.current.length > 0 ? (
+          <div className="wrong-summary">
+            <p className="muted small">
+              本次错题：{wrongRef.current.map((item) => item.knowledgeIds.join("、")).join("；")}
+            </p>
+            <button type="button" className="secondary" onClick={retrainWrong}>
+              🎯 集中重练本次错题（{wrongRef.current.length} 题）
+            </button>
+          </div>
+        ) : null}
         <div className="speed-actions">
           <button type="button" className="primary" onClick={restart}>
             再来一轮
@@ -415,6 +507,8 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
               value={input}
               onChange={(event) => handleChange(event.target.value)}
               onKeyDown={handleKeyDown}
+              onCompositionStart={() => setImeWarning(true)}
+              onCompositionEnd={() => setImeWarning(false)}
               maxLength={maxLength}
               placeholder={exercise.kind === "key-recognition" ? "按一个字母键" : "输入双拼码，例如 ul"}
               aria-label="作答输入"
@@ -425,11 +519,18 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
 
           <p className="muted small keyboard-hint">按下即判定 · 回车或空格进入下一题</p>
 
+          {imeWarning ? (
+            <p className="ime-warning">
+              💡 当前处于中文输入法状态，请按 Shift 或 CapsLock 切换到英文后再按键。
+            </p>
+          ) : null}
+
           <MappingKeyboard
             pressedKey={pressedKey}
             pressedCorrect={pressedCorrect}
             nextKey={showKeyboard ? (sequence[input.length] ?? null) : null}
             mode={mappingMode}
+            showMnemonic={showMnemonic}
           />
         </>
       )}

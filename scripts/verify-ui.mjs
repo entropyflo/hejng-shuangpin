@@ -100,7 +100,12 @@ try {
   assert.ok(boxes[1].y > boxes[0].y);
   check("白色背景与竖列路径", "body 背景 #fff，七天路径纵向排列");
 
+  await goto("/settings");
+  await page.getByRole("button", { name: /^答对自动切题：开/u }).click();
+  check("关闭自动切题", "逐题验证时先关闭，末尾单独验证开启");
+
   // 首页 → 课时 → 作答
+  await goto("/home");
   await page.getByRole("link", { name: /从第 1 天开始/u }).click();
   await page.waitForURL("**/lesson/day-1");
   assert.match(await page.locator(".exercise-card h3").first().innerText(), /韵母“a”/u);
@@ -141,15 +146,16 @@ try {
   await goto("/lesson/day-1");
   await waitForFocus();
   const alwaysMapping = await readMapping();
-  assert.equal(alwaysMapping.filter((item) => item.initial.length > 0).length, 23);
+  assert.equal(alwaysMapping.filter((item) => item.initial.length > 0).length, 3);
   assert.equal(alwaysMapping.filter((item) => item.final.length > 0).length, 26);
-  const mappingFont = await page.locator(".mk-initial").first().evaluate((element) => {
+  assert.equal(alwaysMapping.filter((item) => item.initial.length > 0).map((item) => item.initial).sort().join(","), "ch,sh,zh");
+  const mappingFont = await page.locator(".mk-final").first().evaluate((element) => {
     const style = getComputedStyle(element);
     return { size: parseFloat(style.fontSize), weight: Number(style.fontWeight) };
   });
-  assert.ok(mappingFont.size >= 12);
+  assert.ok(mappingFont.size >= 13);
   assert.ok(mappingFont.weight >= 700);
-  check("键位映射字号与默认显示", `字号 ${mappingFont.size}px / 字重 ${mappingFont.weight}`);
+  check("键位映射字号与默认显示", `韵母 ${mappingFont.size}px / 字重 ${mappingFont.weight}`);
 
   await goto("/settings");
   await page.getByRole("group", { name: "键位映射显示" }).getByRole("button", { name: /按下后显示/u }).click();
@@ -186,19 +192,82 @@ try {
   await goto("/settings");
   await page.getByRole("group", { name: "键位映射显示" }).getByRole("button", { name: /始终显示/u }).click();
 
+  // 答对自动切题
+  await goto("/settings");
+  await page.getByRole("button", { name: /^答对自动切题：关/u }).click();
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  await page.keyboard.press("a");
+  await page.waitForFunction(
+    () => document.querySelector(".exercise-card h3")?.textContent?.includes("韵母“o”"),
+    null,
+    { timeout: 3000 },
+  );
+  check("答对自动切题", "按对后约 280ms 自动进入下一题");
+  await goto("/settings");
+  await page.getByRole("button", { name: /^答对自动切题：开/u }).click();
+
+  // 中文输入法提示
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  await page.locator(".answer-input").evaluate((element) => {
+    element.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
+  });
+  await page.locator(".ime-warning").waitFor();
+  assert.match(await page.locator(".ime-warning").innerText(), /中文输入法/u);
+  await page.locator(".answer-input").evaluate((element) => {
+    element.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true }));
+  });
+  assert.equal(await page.locator(".ime-warning").count(), 0);
+  check("中文输入法提示", "compositionstart 出现黄色提示");
+
+  // 退格撤回
+  await goto("/lesson/day-5");
+  await waitForFocus();
+  await page.keyboard.press("u");
+  assert.equal(await page.locator(".answer-input").inputValue(), "u");
+  await page.keyboard.press("Backspace");
+  assert.equal(await page.locator(".answer-input").inputValue(), "");
+  await page.keyboard.press("u");
+  await page.keyboard.press("l");
+  await page.locator(".feedback-correct").waitFor();
+  check("退格平滑撤回", "第一码可退格清除后重输");
+
+  // 口诀提示
+  await goto("/settings");
+  await page.getByRole("button", { name: /^口诀提示：关/u }).click();
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  assert.equal(await page.locator(".mk-mnemonic").count(), 26);
+  const qKey = page.locator(".mk-key").filter({ has: page.locator(".mk-letter", { hasText: /^Q$/u }) });
+  assert.match(await qKey.innerText(), /秋/u);
+  await goto("/settings");
+  await page.getByRole("button", { name: /^口诀提示：开/u }).click();
+  check("口诀提示", "Q 键显示“秋”，可关闭");
+
+  // 小屏无横向滚动
+  await page.setViewportSize({ width: 800, height: 900 });
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  const overflow = await page.locator(".mapping-keyboard").evaluate((element) => element.scrollWidth - element.clientWidth);
+  assert.ok(overflow <= 1);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  check("小屏自适应", "800px 宽下键位图无横向滚动");
+
+
 
   // 课程与键位
   await page.locator(".main-nav").getByRole("link", { name: "课程" }).click();
   await page.waitForURL("**/course");
   assert.equal(await page.locator(".lesson-list li").count(), 7);
-  await page.locator(".main-nav").getByRole("link", { name: "键位" }).click();
+  await goto("/keyboard");
   await page.waitForURL("**/keyboard");
   assert.equal(await page.locator(".key").count(), 26);
   assert.equal(await page.locator(".data-table tbody tr").count(), 12);
   check("课程与键位页", "7 天课程；26 键 + 12 个零声母");
 
   // 主题
-  await page.locator(".main-nav").getByRole("link", { name: "设置" }).click();
+  await goto("/settings");
   await page.waitForURL("**/settings");
   await page.getByRole("button", { name: "深色", exact: true }).click();
   assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
@@ -217,8 +286,10 @@ try {
   check("浅色主题与截图", "s2-home-light.png / s2-home-dark.png");
 
   // 自由训练
-  await page.locator(".main-nav").getByRole("link", { name: "自由训练" }).click();
+  await page.locator(".main-nav").getByRole("link", { name: "练习" }).click();
   await page.waitForURL("**/practice");
+  await page.getByRole("link", { name: "自由训练" }).click();
+  await page.waitForURL("**/practice/free");
   assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /seed 1/u);
   assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /共 20 题/u);
   await page.getByRole("button", { name: "换一批" }).click();
@@ -559,6 +630,32 @@ try {
   assert.match(await page.locator(".filter-row").innerText(), /共 20 题/u);
   check("混合训练加权抽题", "薄弱加权/随机切换，20 题");
 
+  // 结算重练本次错题
+  await goto("/settings");
+  await page.getByRole("group", { name: "纠错方式" }).getByRole("button", { name: /^严格/u }).click();
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  for (const key of ["a", "o", "e", "i", "u", "v"]) {
+    await page.keyboard.press(key);
+    await page.locator(".feedback-correct").waitFor();
+    await page.getByRole("button", { name: "下一题" }).click();
+  }
+  const optionTexts = await page.locator(".option").allInnerTexts();
+  const wrongOption = optionTexts.map((text) => text.trim()).find((text) => text !== "a") ?? "";
+  await page.locator(".option").filter({ hasText: new RegExp(`^${wrongOption}$`, "u") }).click();
+  await page.locator(".feedback-wrong").waitFor();
+  await page.locator(".option").filter({ hasText: /^a$/u }).click();
+  await page.locator(".feedback-correct").waitFor();
+  await page.getByRole("button", { name: "下一题" }).click();
+  await page.locator(".option").filter({ hasText: /^a$/u }).click();
+  await page.locator(".feedback-correct").waitFor();
+  await page.getByRole("button", { name: "下一题" }).click();
+  await page.locator(".wrong-summary").waitFor();
+  assert.match(await page.locator(".wrong-summary").innerText(), /集中重练本次错题（1 题）/u);
+  await page.getByRole("button", { name: /集中重练本次错题/u }).click();
+  assert.match(await page.locator(".exercise-meta .muted").innerText(), /\/ 1 题/u);
+  check("结算重练错题", "1 道错题可直接重练");
+
   // 备份导出 / 清空 / 导入恢复
   await goto("/settings");
   const downloadPromise = page.waitForEvent("download");
@@ -600,6 +697,12 @@ try {
   assert.match(await page.locator(".exercise-card h3").innerText(), /韵母“a”/u);
   await context.setOffline(false);
   check("断网刷新与路由", "离线仍可打开首页与课时页");
+
+  // 第 4 天零声母全覆盖
+  await goto("/lesson/day-4");
+  assert.equal(await page.locator('[aria-labelledby="zero-title"] tbody tr').count(), 12);
+  assert.match(await page.locator(".exercise-meta .muted").innerText(), /\/ 35 题/u);
+  check("第 4 天零声母全覆盖", "12 个零声母题 + 速查表");
 
   // 404
   await goto("/nope");

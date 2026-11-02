@@ -19,6 +19,24 @@ export function buildKeyMap(): KeySlot[] {
   }));
 }
 
+export const SPECIAL_INITIAL_KEYS = { zh: "v", ch: "i", sh: "u" } as const;
+
+export const KEY_MNEMONICS: Record<string, string> = {
+  q: "秋", w: "闱", r: "软", t: "月", y: "云", u: "梳", i: "翅",
+  s: "松", d: "黛", f: "粉", g: "更", h: "航", j: "安",
+  k: "快", l: "两", z: "奏", x: "夏",
+  p: "撇", c: "草", v: "追", b: "滨", n: "鸟", m: "眠",
+};
+
+export function mnemonicFor(key: string): string | null {
+  return KEY_MNEMONICS[key] ?? null;
+}
+
+export function specialInitialFor(key: string): string | null {
+  const entry = Object.entries(SPECIAL_INITIAL_KEYS).find(([, mapped]) => mapped === key);
+  return entry ? entry[0] : null;
+}
+
 export function normalizeCodeInput(value: string): string {
   return value.toLowerCase().replace(/[\s,，、]+/gu, "");
 }

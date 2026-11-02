@@ -597,10 +597,7 @@ export const LESSONS: Lesson[] = [
     steps: lessonSteps("声母与零声母"),
     exerciseIds: [
       ...keyIds(DISPLAY_INITIALS, "initial"),
-      "syllable-ang",
-      "syllable-er",
-      "syllable-a",
-      "syllable-e",
+      ...Object.keys(FLYPY_ZERO_INITIAL_CODES).map((final) => `syllable-${final}`),
     ],
   },
   {

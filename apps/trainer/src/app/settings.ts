@@ -10,6 +10,8 @@ export type CorrectionBehavior = "strict" | "continuous";
 export const HINT_MODE_KEY = "xiaohe.hint-mode.v1";
 export const INPUT_MODE_KEY = "xiaohe.input-mode.v1";
 export const MAPPING_MODE_KEY = "xiaohe.mapping-mode.v1";
+export const AUTO_ADVANCE_KEY = "xiaohe.auto-advance.v1";
+export const MNEMONIC_KEY = "xiaohe.mnemonic.v1";
 export const CORRECTION_MODE_KEY = "xiaohe.correction-mode.v1";
 export const AUTO_HINT_STREAK = 3;
 export const MOTION_KEY = "xiaohe.motion.v1";
@@ -111,4 +113,20 @@ export function readToggle(storage: KeyValueStorage, key: string, fallback: bool
 
 export function writeToggle(storage: KeyValueStorage, key: string, value: boolean): void {
   storage.setItem(key, value ? "on" : "off");
+}
+
+export function readAutoAdvance(storage: KeyValueStorage): boolean {
+  return readToggle(storage, AUTO_ADVANCE_KEY, true);
+}
+
+export function writeAutoAdvance(storage: KeyValueStorage, value: boolean): void {
+  writeToggle(storage, AUTO_ADVANCE_KEY, value);
+}
+
+export function readMnemonic(storage: KeyValueStorage): boolean {
+  return readToggle(storage, MNEMONIC_KEY, false);
+}
+
+export function writeMnemonic(storage: KeyValueStorage, value: boolean): void {
+  writeToggle(storage, MNEMONIC_KEY, value);
 }
