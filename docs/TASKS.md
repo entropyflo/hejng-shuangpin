@@ -21,9 +21,11 @@
 | UI-002 | 003, 005, 016, 018 | UI-001 | DONE | WorkBuddy | 新增题型时补提示序列与纠错映射 | 18 项浏览器断言；109 单测 | S2 UI-002 提交 |
 | UI-003 | 004, 013 | UI-002 | DONE | WorkBuddy | 真实系统 IME 需人工验收 | 21 项浏览器断言（IME 为合成事件） | S2 UI-003 提交 |
 | UI-004 | 012, 016, 023, 024 | UI-003 | DONE | WorkBuddy | 新页面需保持快捷键不冲突 | 27 项浏览器断言；123 单测 | S2 UI-004 提交 |
-| G2 | 003, 004, 012, 013, 016, 023, 024 | UI-001～004 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 按 `TEST_ACCEPTANCE.md` G2 验收，含真实 IME | 需真实系统输入法人工测试 | — |
-| REV-001～003 | 006～008 | S2/G2 | TODO | Codex | S3 分解实现 | REV 全组 | — |
-| STA-001～003 | 008, 018, 025, 026 | S2/G2 | TODO | Codex | S3 分解实现 | STAT 全组 | — |
-| PWA-001, DAT-001～002, PKG-001 | 014, 015, 027, 029 | S3/G3 | TODO | Codex | S4 分解实现 | DATA/PWA/PKG 全组 | — |
+| G2 | 003, 004, 012, 013, 016, 023, 024 | UI-001～004 | DONE | 用户 | 已通过；S3 从数据层开始 | 用户 2026-11-02 23:18 确认“通过” | — |
+| REV-001～003 | 006～008 | DAT-001 | TODO | WorkBuddy | 复习排程引擎、今日计划、错题与热力图 | REV 全组 | — |
+| STA-001 | 008, 025 | DAT-001 | DONE | WorkBuddy | CPM 只用于速度挑战，不换算键位练习 | metrics 单测 + 会话 CPM | S3 数据层提交 |
+| STA-002～003 | 008, 026 | STA-001 | TODO | WorkBuddy | 全拼对比与历史图表 | STAT-T02, T03 | — |
+| DAT-001 | 015, 029 | G2 | DONE | WorkBuddy | 表结构变更时必须加 Dexie 迁移 | 30 项浏览器断言含 IndexedDB 刷新 | S3 数据层提交 |
+| DAT-002, PWA-001, PKG-001 | 014, 015, 027, 029 | DAT-001 | TODO | WorkBuddy | 备份导入事务、离线安装与发行包 | DATA/PWA/PKG 全组 | — |
 | ORG-001～007 | 032～041 | ENV-003 或获批阻塞设计 | TODO | Codex | S5；接口不可用时保持阻塞 | COORD 全组 | — |
 | QA-001～005 | 031～033 | 各阶段 | TODO | Codex + 用户 | 随阶段执行 | TEST_ACCEPTANCE | — |

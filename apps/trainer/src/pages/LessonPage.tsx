@@ -87,7 +87,7 @@ export function LessonPage({ lessonId }: { lessonId: string }) {
             按键模式按物理键位识别，按 Enter 可直接检查；输入法模式只判定已提交的汉字。
           </p>
         </div>
-        <ExerciseRunner key={lesson.id} exercises={exercises} />
+        <ExerciseRunner key={lesson.id} exercises={exercises} scope={`lesson:${lesson.id}`} />
       </section>
     </>
   );

@@ -5,15 +5,28 @@ import { correctPrefixLength } from "../curriculum/practice";
 type SpeedChallengeProps = {
   text: string;
   durationSeconds: number;
+  onResult?: (result: { correctChars: number; elapsedMs: number }) => void;
 };
 
-export function SpeedChallenge({ text, durationSeconds }: SpeedChallengeProps) {
+export function SpeedChallenge({ text, durationSeconds, onResult }: SpeedChallengeProps) {
   const [status, setStatus] = useState<"idle" | "running" | "done">("idle");
   const [typed, setTyped] = useState("");
   const [remaining, setRemaining] = useState(durationSeconds);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [endedAt, setEndedAt] = useState<number | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const typedRef = useRef("");
+
+  function end() {
+    if (status !== "running") return;
+    const ended = Date.now();
+    setEndedAt(ended);
+    setStatus("done");
+    onResult?.({
+      correctChars: correctPrefixLength(text, typedRef.current),
+      elapsedMs: Math.max(0, ended - (startedAt ?? ended)),
+    });
+  }
 
   useEffect(() => {
     if (status !== "running" || startedAt === null) return;
@@ -21,30 +34,32 @@ export function SpeedChallenge({ text, durationSeconds }: SpeedChallengeProps) {
       const left = Math.max(0, Math.ceil((startedAt + durationSeconds * 1000 - Date.now()) / 1000));
       setRemaining(left);
       if (left <= 0) {
-        setEndedAt(Date.now());
+        const ended = Date.now();
+        setEndedAt(ended);
         setStatus("done");
+        onResult?.({
+          correctChars: correctPrefixLength(text, typedRef.current),
+          elapsedMs: Math.max(0, ended - startedAt),
+        });
       }
     };
     tick();
     const timer = window.setInterval(tick, 250);
     return () => window.clearInterval(timer);
-  }, [status, startedAt, durationSeconds]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, startedAt, durationSeconds, text]);
 
   useEffect(() => {
     if (status === "running") inputRef.current?.focus();
   }, [status]);
 
   function start() {
+    typedRef.current = "";
     setTyped("");
     setRemaining(durationSeconds);
     setStartedAt(Date.now());
     setEndedAt(null);
     setStatus("running");
-  }
-
-  function finish() {
-    setEndedAt(Date.now());
-    setStatus("done");
   }
 
   const elapsed = startedAt === null ? 0 : Math.max(0, Math.round(((endedAt ?? Date.now()) - startedAt) / 1000));
@@ -66,7 +81,10 @@ export function SpeedChallenge({ text, durationSeconds }: SpeedChallengeProps) {
         ref={inputRef}
         className="speed-input"
         value={typed}
-        onChange={(event) => setTyped(event.target.value)}
+        onChange={(event) => {
+          typedRef.current = event.target.value;
+          setTyped(event.target.value);
+        }}
         disabled={status !== "running"}
         placeholder={status === "idle" ? "点击“开始”后在这里输入" : "输入与上方一致的文本"}
         aria-label="测速输入"
@@ -80,7 +98,7 @@ export function SpeedChallenge({ text, durationSeconds }: SpeedChallengeProps) {
           </button>
         ) : null}
         {status === "running" ? (
-          <button type="button" className="secondary" onClick={finish}>
+          <button type="button" className="secondary" onClick={end}>
             提前结束
           </button>
         ) : null}
@@ -109,7 +127,7 @@ export function SpeedChallenge({ text, durationSeconds }: SpeedChallengeProps) {
       ) : null}
 
       <p className="muted small">
-        这里只统计本次用时与正确字数；CPM 定义、星级与历史记录属于 S3，不在此处伪造成绩。
+        只统计本次用时与正确字数；CPM 会写入本机记录，星级与复习排程在 S3 逐步接入。
       </p>
     </div>
   );

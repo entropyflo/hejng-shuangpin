@@ -308,6 +308,37 @@ try {
   assert.equal(await page.locator(".topbar").isVisible(), true);
   check("输入框内不触发快捷键", "在作答框输入 f 不进入专注");
 
+  // 完成一轮课程，验证会话结算与真实统计
+  await goto("/lesson/day-1");
+  for (const key of ["a", "o", "e", "i", "u", "v"]) {
+    await answerKey(key);
+    await page.locator(".feedback-correct").waitFor();
+    await page.getByRole("button", { name: "下一题" }).click();
+  }
+  await page.locator(".option").filter({ hasText: /^a$/u }).click();
+  await page.getByRole("button", { name: "检查" }).click();
+  await page.locator(".feedback-correct").waitFor();
+  await page.getByRole("button", { name: "下一题" }).click();
+  await page.locator(".summary-grid").waitFor();
+  const summary = await page.locator(".summary-grid").innerText();
+  assert.match(summary, /100%/u);
+  assert.match(summary, /★★★/u);
+  check("完成一轮并结算", summary.replace(/\s+/gu, " "));
+
+  await page.getByRole("link", { name: "查看统计" }).click();
+  await page.waitForURL("**/stats");
+  await page.locator(".data-table").last().waitFor();
+  const history = await page.locator(".data-table").last().innerText();
+  assert.match(history, /课程 day-1/u);
+  assert.match(history, /100%/u);
+  check("统计页读取真实记录", history.split("\n").slice(0, 2).join(" "));
+
+  await page.reload({ waitUntil: "load" });
+  await page.locator(".data-table").last().waitFor();
+  assert.match(await page.locator(".data-table").last().innerText(), /课程 day-1/u);
+  check("IndexedDB 刷新后仍保留", "重新加载统计页仍有记录");
+  await screenshot("s2-stats.png");
+
   // 404
   await goto("/nope");
   assert.match(await page.locator(".page-title").innerText(), /没有这个页面/u);

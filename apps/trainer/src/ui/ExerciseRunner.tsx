@@ -1,4 +1,5 @@
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { usePreferences } from "../app/preferences";
 import {
   HINT_LABEL,
   INPUT_LABEL,
@@ -16,13 +17,19 @@ import {
   checkExerciseAnswer,
   expectedAnswer,
   expectedKeySequence,
+  normalizeCodeInput,
   sameFinals,
 } from "../curriculum/practice";
+import { getRepository } from "../data";
+import { computeCpm, starsToText } from "../data/metrics";
+import { buildSession, newSessionId } from "../data/recorder";
+import { createMastery, reviewMastery } from "../data/scheduler";
+import type { Attempt, PracticeSession } from "../data/types";
 import type { FlypyFinal } from "../scheme/flypy";
-import { usePreferences } from "../app/preferences";
 import { playFeedback } from "./feedbackSound";
 import { HintKeyboard } from "./HintKeyboard";
 import { ImePractice } from "./ImePractice";
+import { Link } from "./Link";
 import { SpeedChallenge } from "./SpeedChallenge";
 
 const KIND_LABEL: Record<Exercise["kind"], string> = {
@@ -41,7 +48,7 @@ const DIFFICULTY_LABEL = {
 
 type Feedback = { status: "correct" | "wrong" | "revealed" };
 
-export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
+export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; scope: string }) {
   const [index, setIndex] = useState(0);
   const [input, setInput] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
@@ -53,7 +60,15 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const [summary, setSummary] = useState<PracticeSession | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { sound } = usePreferences();
+
+  const sessionIdRef = useRef(newSessionId());
+  const sessionStartRef = useRef(Date.now());
+  const questionStartRef = useRef(Date.now());
+  const attemptsRef = useRef<Attempt[]>([]);
+  const cpmRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!flashKey) return;
@@ -85,6 +100,58 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
     setLocked(false);
   }
 
+  async function persistAttempt(attempt: Attempt) {
+    try {
+      const repository = getRepository();
+      await repository.addAttempt(attempt);
+      for (const knowledgeId of attempt.knowledgeIds) {
+        const current = (await repository.getMastery(knowledgeId)) ?? createMastery(knowledgeId, attempt.at);
+        await repository.putMastery(
+          reviewMastery(current, attempt.correct ? "correct" : "wrong", attempt.at, attempt.responseMs),
+        );
+      }
+    } catch {
+      setSaveError("本次作答未能写入本机数据库。");
+    }
+  }
+
+  function recordAttempt(current: Exercise, correct: boolean, expected: string, received: string) {
+    const at = Date.now();
+    const attempt: Attempt = {
+      sessionId: sessionIdRef.current,
+      exerciseId: current.id,
+      kind: current.kind,
+      knowledgeIds: current.knowledgeIds,
+      mode: inputMode,
+      correct,
+      responseMs: Math.max(0, at - questionStartRef.current),
+      at,
+      expected,
+      received,
+    };
+    questionStartRef.current = at;
+    attemptsRef.current.push(attempt);
+    void persistAttempt(attempt);
+  }
+
+  async function finishSession() {
+    const session = buildSession({
+      id: sessionIdRef.current,
+      scope,
+      mode: inputMode,
+      startedAt: sessionStartRef.current,
+      endedAt: Date.now(),
+      attempts: attemptsRef.current,
+      cpm: cpmRef.current,
+    });
+    setSummary(session);
+    try {
+      await getRepository().saveSession(session);
+    } catch {
+      setSaveError("会话未能保存到本机数据库。");
+    }
+  }
+
   function flashNextKey() {
     const next = sequence[input.length] ?? sequence[0];
     if (next) setFlashKey(next);
@@ -97,15 +164,18 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
       if (!selectedOption) return;
       const correct = sameFinals(selectedOption, exercise.expectedReadings);
       setFeedback({ status: correct ? "correct" : "wrong" });
-      playFeedback(correct ? "correct" : "wrong", sound);
       setStreak(correct ? streak + 1 : 0);
       setLocked(!correct && behavior === "strict");
+      playFeedback(correct ? "correct" : "wrong", sound);
+      recordAttempt(exercise, correct, exercise.expectedReadings.join(" / "), selectedOption.join(" / "));
       return;
     }
 
     const result = checkExerciseAnswer(exercise, input);
     setFeedback({ status: result.correct ? "correct" : "wrong" });
     playFeedback(result.correct ? "correct" : "wrong", sound);
+    recordAttempt(exercise, result.correct, result.expected, normalizeCodeInput(input));
+
     if (result.correct) {
       setStreak(streak + 1);
       setLocked(false);
@@ -124,6 +194,7 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
     if (locked) return;
     if (index + 1 >= exercises.length) {
       setFinished(true);
+      void finishSession();
       return;
     }
     setIndex(index + 1);
@@ -143,6 +214,13 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
     setLocked(false);
     setStreak(0);
     setFinished(false);
+    setSummary(null);
+    setSaveError(null);
+    sessionIdRef.current = newSessionId();
+    sessionStartRef.current = Date.now();
+    questionStartRef.current = Date.now();
+    attemptsRef.current = [];
+    cpmRef.current = null;
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -162,10 +240,39 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
     return (
       <div className="exercise-card">
         <h3>本轮完成</h3>
-        <p>共 {exercises.length} 题。成绩统计、错题本与间隔复习在 S3 接入。</p>
-        <button type="button" className="primary" onClick={restart}>
-          再来一轮
-        </button>
+        {summary ? (
+          <dl className="summary-grid">
+            <div>
+              <dt>题数</dt>
+              <dd>{summary.attempts}</dd>
+            </div>
+            <div>
+              <dt>正确</dt>
+              <dd>{summary.correct}</dd>
+            </div>
+            <div>
+              <dt>正确率</dt>
+              <dd>{Math.round(summary.accuracy * 100)}%</dd>
+            </div>
+            <div>
+              <dt>星级</dt>
+              <dd className="stars">{starsToText(summary.stars)}</dd>
+            </div>
+            <div>
+              <dt>CPM</dt>
+              <dd>{summary.cpm ?? "—"}</dd>
+            </div>
+          </dl>
+        ) : null}
+        <p className="muted small">{saveError ?? "记录已保存到本机数据库（IndexedDB）。"}</p>
+        <div className="speed-actions">
+          <button type="button" className="primary" onClick={restart}>
+            再来一轮
+          </button>
+          <Link className="secondary" to="/stats">
+            查看统计
+          </Link>
+        </div>
       </div>
     );
   }
@@ -199,26 +306,39 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
       ) : null}
 
       {exercise.kind === "speed-challenge" ? (
-        <SpeedChallenge text={exercise.text} durationSeconds={exercise.durationSeconds} />
+        <SpeedChallenge
+          text={exercise.text}
+          durationSeconds={exercise.durationSeconds}
+          onResult={(result) => {
+            cpmRef.current = computeCpm(result.correctChars, result.elapsedMs);
+          }}
+        />
       ) : exercise.kind === "reverse-recall" ? (
-        <div className="option-grid">
-          {buildReverseRecallOptions(exercise).map((option) => {
-            const active = selectedOption ? sameFinals(selectedOption, option) : false;
-            return (
-              <button
-                key={option.join("-")}
-                type="button"
-                className={active ? "option is-active" : "option"}
-                onClick={() => {
-                  setSelectedOption(option);
-                  setFeedback(null);
-                }}
-              >
-                {option.join(" / ")}
-              </button>
-            );
-          })}
-        </div>
+        <>
+          <div className="option-grid">
+            {buildReverseRecallOptions(exercise).map((option) => {
+              const active = selectedOption ? sameFinals(selectedOption, option) : false;
+              return (
+                <button
+                  key={option.join("-")}
+                  type="button"
+                  className={active ? "option is-active" : "option"}
+                  onClick={() => {
+                    setSelectedOption(option);
+                    setFeedback(null);
+                  }}
+                >
+                  {option.join(" / ")}
+                </button>
+              );
+            })}
+          </div>
+          <div className="speed-actions">
+            <button type="button" className="primary" onClick={submit} disabled={!selectedOption}>
+              检查
+            </button>
+          </div>
+        </>
       ) : useIme ? (
         <ImePractice text={exercise.text} />
       ) : (

@@ -648,3 +648,15 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 980px) {
   .topbar-actions { width: 100%; justify-content: flex-end; }
 }
+
+/* ---------- session summary & stats ---------- */
+
+.summary-grid { display: grid; grid-template-columns: repeat(5, minmax(90px, 1fr)); gap: 10px; margin: 16px 0 12px; }
+.summary-grid div { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-raised); }
+.summary-grid dt { color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.summary-grid dd { margin: 4px 0 0; font-size: 1.1rem; font-weight: 700; }
+.stars { color: var(--accent); letter-spacing: 0.08em; }
+
+@media (max-width: 720px) {
+  .summary-grid { grid-template-columns: repeat(2, minmax(90px, 1fr)); }
+}

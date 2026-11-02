@@ -53,7 +53,7 @@ export function PracticePage() {
           </span>
         </div>
 
-        <ExerciseRunner key={`${difficulty}-${seed}`} exercises={exercises} />
+        <ExerciseRunner key={`${difficulty}-${seed}`} exercises={exercises} scope={`free:${difficulty}:${seed}`} />
       </section>
     </>
   );
