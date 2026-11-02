@@ -1,4 +1,5 @@
 import Dexie, { type Table } from "dexie";
+import type { BackupData } from "./backup";
 import type { TrainingRepository } from "./repository";
 import type { Attempt, ComparisonRecord, MasteryRecord, PracticeSession } from "./types";
 
@@ -59,6 +60,44 @@ export class DexieTrainingRepository implements TrainingRepository {
 
   async listComparisons(limit: number): Promise<ComparisonRecord[]> {
     return this.db.comparisons.orderBy("at").reverse().limit(limit).toArray();
+  }
+
+  async exportAll(): Promise<BackupData> {
+    return this.db.transaction(
+      "r",
+      this.db.attempts,
+      this.db.sessions,
+      this.db.mastery,
+      this.db.comparisons,
+      async () => ({
+        attempts: await this.db.attempts.toArray(),
+        sessions: await this.db.sessions.toArray(),
+        mastery: await this.db.mastery.toArray(),
+        comparisons: await this.db.comparisons.toArray(),
+      }),
+    );
+  }
+
+  async replaceAll(data: BackupData): Promise<void> {
+    await this.db.transaction(
+      "rw",
+      this.db.attempts,
+      this.db.sessions,
+      this.db.mastery,
+      this.db.comparisons,
+      async () => {
+        await Promise.all([
+          this.db.attempts.clear(),
+          this.db.sessions.clear(),
+          this.db.mastery.clear(),
+          this.db.comparisons.clear(),
+        ]);
+        if (data.attempts.length > 0) await this.db.attempts.bulkAdd(data.attempts);
+        if (data.sessions.length > 0) await this.db.sessions.bulkPut(data.sessions);
+        if (data.mastery.length > 0) await this.db.mastery.bulkPut(data.mastery);
+        if (data.comparisons.length > 0) await this.db.comparisons.bulkPut(data.comparisons);
+      },
+    );
   }
 
   async clear(): Promise<void> {

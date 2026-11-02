@@ -1,3 +1,4 @@
+import type { BackupData } from "./backup";
 import type { Attempt, ComparisonRecord, MasteryRecord, PracticeSession } from "./types";
 
 export interface TrainingRepository {
@@ -10,6 +11,8 @@ export interface TrainingRepository {
   listDue(now: number): Promise<MasteryRecord[]>;
   saveComparison(record: ComparisonRecord): Promise<void>;
   listComparisons(limit: number): Promise<ComparisonRecord[]>;
+  exportAll(): Promise<BackupData>;
+  replaceAll(data: BackupData): Promise<void>;
   clear(): Promise<void>;
 }
 
@@ -57,6 +60,22 @@ export class MemoryTrainingRepository implements TrainingRepository {
 
   async listComparisons(limit: number): Promise<ComparisonRecord[]> {
     return [...this.comparisons].sort((left, right) => right.at - left.at).slice(0, limit);
+  }
+
+  async exportAll(): Promise<BackupData> {
+    return {
+      attempts: [...this.attempts],
+      sessions: [...this.sessions],
+      mastery: [...this.mastery.values()],
+      comparisons: [...this.comparisons],
+    };
+  }
+
+  async replaceAll(data: BackupData): Promise<void> {
+    this.attempts = [...data.attempts];
+    this.sessions = [...data.sessions];
+    this.mastery = new Map(data.mastery.map((record) => [record.knowledgeId, record]));
+    this.comparisons = [...data.comparisons];
   }
 
   async clear(): Promise<void> {

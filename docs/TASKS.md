@@ -28,8 +28,11 @@
 | STA-001 | 008, 025 | DAT-001 | DONE | WorkBuddy | CPM 只用于速度挑战，不换算键位练习 | metrics 单测 + 会话 CPM | S3 数据层提交 |
 | STA-002 | 008, 026 | STA-001 | DONE | WorkBuddy | 真实输入法对比需人工复测 | 对比流程与保存断言 | S3 对比提交 |
 | STA-003 | 008 | STA-002 | DONE | WorkBuddy | 新指标需补序列测试 | 折线点单测；趋势图断言 | S3 对比提交 |
-| G3 | 006～008, 018, 025, 026 | REV-001～003, STA-001～003 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 按 `TEST_ACCEPTANCE.md` G3 验收 | 需真实一周数据与真实输入法对比 | — |
+| G3 | 006～008, 018, 025, 026 | REV-001～003, STA-001～003 | DONE | 用户 | 已通过；S4 从 PWA 与备份开始 | 用户 2026-11-02 23:33 确认“通过” | — |
 | DAT-001 | 015, 029 | G2 | DONE | WorkBuddy | 表结构变更时必须加 Dexie 迁移 | 30 项浏览器断言含 IndexedDB 刷新 | S3 数据层提交 |
-| DAT-002, PWA-001, PKG-001 | 014, 015, 027, 029 | DAT-001 | TODO | WorkBuddy | 备份导入事务、离线安装与发行包 | DATA/PWA/PKG 全组 | — |
+| PWA-001 | 014, 020 | DAT-001 | DONE | WorkBuddy | 资源变化需重新构建生成 SW | 断网刷新与路由断言 | S4 提交 |
+| DAT-002 | 015, 029 | DAT-001 | DONE | WorkBuddy | 备份结构变更必须升 schemaVersion | 备份校验单测；导出/清空/导入断言 | S4 提交 |
+| PKG-001 | 027 | PWA-001 | IN_PROGRESS | WorkBuddy | Windows 真机与签名安装包待做 | macOS 启动脚本与静态服务已验证；Windows NOT_RUN | S4 提交 |
+| G4 | 014, 015, 027, 029 | PWA-001, DAT-002, PKG-001 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 安装 PWA、断网、重启与备份恢复 | 需真机安装与 Windows 验证 | — |
 | ORG-001～007 | 032～041 | ENV-003 或获批阻塞设计 | TODO | Codex | S5；接口不可用时保持阻塞 | COORD 全组 | — |
 | QA-001～005 | 031～033 | 各阶段 | TODO | Codex + 用户 | 随阶段执行 | TEST_ACCEPTANCE | — |

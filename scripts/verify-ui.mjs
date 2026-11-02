@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright-core";
@@ -427,6 +427,47 @@ try {
   assert.match(await page.locator('[aria-labelledby="trend-title"]').innerText(), /正确率/u);
   await screenshot("s3-trend.png");
   check("趋势图", "正确率折线渲染");
+
+  // 备份导出 / 清空 / 导入恢复
+  await goto("/settings");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: "导出备份" }).click();
+  const download = await downloadPromise;
+  const backupPath = path.join(os.tmpdir(), `xiaohe-backup-${Date.now()}.json`);
+  await download.saveAs(backupPath);
+  const backup = JSON.parse(readFileSync(backupPath, "utf8"));
+  assert.equal(backup.schemaVersion, 2);
+  assert.ok(backup.counts.sessions >= 1);
+  assert.match(backup.checksum, /^[0-9a-f]{8}$/u);
+  check("导出备份", `${backup.counts.attempts} 条作答 / ${backup.counts.sessions} 次会话`);
+
+  await page.getByRole("button", { name: "清空全部数据" }).click();
+  await page.getByRole("button", { name: "确认清空" }).click();
+  await page.locator(".muted.small").filter({ hasText: "已清空" }).waitFor();
+  await goto("/stats");
+  assert.match(await page.locator(".panel").first().innerText(), /还没有数据/u);
+  check("清空本机数据", "统计页回到空状态");
+
+  await goto("/settings");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.locator('input[type="file"]').setInputFiles(backupPath);
+  await page.locator(".muted.small").filter({ hasText: "导入完成" }).waitFor();
+  await goto("/stats");
+  assert.match(await page.locator('[aria-labelledby="history-title"] .data-table').innerText(), /课程 day-1/u);
+  check("导入备份恢复数据", "清空后导入，会话记录恢复");
+
+  // 离线：Service Worker 预缓存
+  await goto("/home");
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller), null, { timeout: 20000 });
+  assert.equal(await page.locator(".update-banner").count(), 0);
+  await context.setOffline(true);
+  await page.reload({ waitUntil: "load" });
+  assert.equal(await page.title(), "鹤径 · 小鹤双拼学习器");
+  assert.equal(await page.locator(".main-nav").isVisible(), true);
+  await goto("/lesson/day-1");
+  assert.match(await page.locator(".exercise-card h3").innerText(), /韵母“a”/u);
+  await context.setOffline(false);
+  check("断网刷新与路由", "离线仍可打开首页与课时页");
 
   // 404
   await goto("/nope");

@@ -15,6 +15,8 @@ import {
 } from "../app/settings";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { usePreferences } from "../app/preferences";
+import { createBackup, parseBackup } from "../data/backup";
+import { getRepository } from "../data";
 import { useThemeState } from "../app/theme-context";
 import { ReadingCorrection } from "../ui/ReadingCorrection";
 
@@ -28,6 +30,9 @@ export function SettingsPage() {
   const [hintMode, setHintMode] = useState(() => readHintMode(window.localStorage));
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const [dataMessage, setDataMessage] = useState<string | null>(null);
+  const [dataError, setDataError] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const { motion, sound, fingering, setMotion, setSound, setFingering } = usePreferences();
 
   function changeHint(mode: HintMode) {
@@ -43,6 +48,58 @@ export function SettingsPage() {
   function changeInput(mode: InputMode) {
     setInputMode(mode);
     writeInputMode(window.localStorage, mode);
+  }
+
+  async function exportBackup() {
+    try {
+      const payload = createBackup(await getRepository().exportAll());
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `xiaohe-backup-${new Date(payload.exportedAt).toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setDataMessage(
+        `已导出：${payload.counts.attempts} 条作答、${payload.counts.sessions} 次会话、${payload.counts.mastery} 个知识点、${payload.counts.comparisons} 次对比。`,
+      );
+      setDataError(null);
+    } catch {
+      setDataError("导出失败，请确认浏览器允许 IndexedDB。");
+    }
+  }
+
+  async function importBackup(file: File) {
+    const result = parseBackup(await file.text());
+    if (!result.ok) {
+      setDataError(result.error);
+      setDataMessage(null);
+      return;
+    }
+    const { counts } = result.payload;
+    const confirmed = window.confirm(
+      `导入会覆盖当前全部数据：\n作答 ${counts.attempts} 条、会话 ${counts.sessions} 次、知识点 ${counts.mastery} 个、对比 ${counts.comparisons} 次。\n继续吗？`,
+    );
+    if (!confirmed) return;
+    try {
+      await getRepository().replaceAll(result.payload.data);
+      setDataMessage(`导入完成：${counts.attempts} 条作答、${counts.sessions} 次会话。`);
+      setDataError(null);
+    } catch {
+      setDataError("导入失败，事务已回滚，原有数据保持不变。");
+    }
+  }
+
+  async function clearAllData() {
+    try {
+      await getRepository().clear();
+      setDataMessage("已清空本机记录。");
+      setDataError(null);
+    } catch {
+      setDataError("清空失败，请确认浏览器允许 IndexedDB。");
+    } finally {
+      setConfirmClear(false);
+    }
   }
 
   return (
@@ -200,8 +257,46 @@ export function SettingsPage() {
             <p className="eyebrow">数据</p>
             <h2 id="data-title">备份与重置</h2>
           </div>
-          <p className="panel-note">导出、导入与清空全部数据属于 S4；当前只保存主题、提示、纠错与多音字修正。</p>
+          <p className="panel-note">
+            备份包含作答、会话、掌握度与对比记录；导入前会校验校验和，并用事务整体替换。
+          </p>
         </div>
+
+        <div className="speed-actions">
+          <button type="button" className="primary" onClick={() => void exportBackup()}>
+            导出备份
+          </button>
+          <label className="secondary file-label">
+            导入备份
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="visually-hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void importBackup(file);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          {confirmClear ? (
+            <>
+              <button type="button" className="primary" onClick={() => void clearAllData()}>
+                确认清空
+              </button>
+              <button type="button" className="secondary" onClick={() => setConfirmClear(false)}>
+                取消
+              </button>
+            </>
+          ) : (
+            <button type="button" className="secondary" onClick={() => setConfirmClear(true)}>
+              清空全部数据
+            </button>
+          )}
+        </div>
+
+        {dataError ? <p className="error-text">{dataError}</p> : null}
+        {dataMessage ? <p className="muted small">{dataMessage}</p> : null}
       </section>
     </>
   );

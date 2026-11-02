@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { NAV_ITEMS, navigate, useRoute } from "../app/router";
 import { usePreferences } from "../app/preferences";
+import { useServiceWorkerUpdate } from "../app/swUpdate";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { useThemeState } from "../app/theme-context";
 import { Link } from "./Link";
@@ -30,6 +31,7 @@ export function Layout({ children }: { children: ReactNode }) {
   const { preference, setPreference } = useThemeState();
   const { focus, setFocus, toggleFocus } = usePreferences();
   const [helpOpen, setHelpOpen] = useState(false);
+  const { updateReady, reload } = useServiceWorkerUpdate();
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -122,6 +124,15 @@ export function Layout({ children }: { children: ReactNode }) {
       <main id="content" className="page">
         {children}
       </main>
+
+      {updateReady ? (
+        <div className="update-banner" role="status">
+          <span>新版本已就绪，刷新后生效。</span>
+          <button type="button" className="secondary" onClick={reload}>
+            刷新
+          </button>
+        </div>
+      ) : null}
 
       <footer className="page-footer">
         <p>
