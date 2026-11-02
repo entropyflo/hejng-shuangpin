@@ -124,12 +124,12 @@ try {
   // 自由训练
   await page.locator(".main-nav").getByRole("link", { name: "自由训练" }).click();
   await page.waitForURL("**/practice");
-  assert.match(await page.locator(".filter-row").innerText(), /seed 1/u);
-  assert.match(await page.locator(".filter-row").innerText(), /共 20 题/u);
+  assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /seed 1/u);
+  assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /共 20 题/u);
   await page.getByRole("button", { name: "换一批" }).click();
-  assert.match(await page.locator(".filter-row").innerText(), /seed 2/u);
+  assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /seed 2/u);
   await page.getByRole("button", { name: "挑战" }).click();
-  assert.match(await page.locator(".filter-row").innerText(), /seed 1/u);
+  assert.match(await page.locator('[aria-label="难度筛选"]').innerText(), /seed 1/u);
   check("自由训练抽题", "seed 可重现，换批与难度筛选生效");
 
   // 严格纠错：答错后必须按对才能继续
@@ -180,6 +180,47 @@ try {
   await page.locator(".feedback-wrong").waitFor();
   assert.equal(await page.getByRole("button", { name: "下一题" }).isDisabled(), false);
   check("连续纠错不阻塞", "词句题答错后仍可进入下一题");
+
+  // 输入法模式：组合中不判定，提交后判定
+  await goto("/settings");
+  await page.getByRole("group", { name: "输入方式" }).getByRole("button", { name: "输入法模式" }).click();
+  await goto("/lesson/day-6");
+  assert.equal(await page.locator(".answer-input").count(), 0);
+  assert.equal(await page.locator(".ime-input").count(), 1);
+
+  await page.evaluate(() => {
+    const element = document.querySelector(".ime-input");
+    if (!(element instanceof HTMLTextAreaElement)) throw new Error("缺少输入法输入框");
+    const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+    setValue?.call(element, "中");
+    element.dispatchEvent(new CompositionEvent("compositionstart", { bubbles: true }));
+    element.dispatchEvent(new InputEvent("input", { bubbles: true, data: "中", isComposing: true }));
+  });
+  await page.locator(".ime-status .badge-ambiguous").waitFor();
+  assert.match(await page.locator(".ime-status").innerText(), /正在组合输入/u);
+  check("输入法模式组合中不判定", "composition 中的候选不计分");
+
+  await page.evaluate(() => {
+    const element = document.querySelector(".ime-input");
+    if (!(element instanceof HTMLTextAreaElement)) throw new Error("缺少输入法输入框");
+    const setValue = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")?.set;
+    setValue?.call(element, "中国");
+    element.dispatchEvent(new CompositionEvent("compositionend", { bubbles: true, data: "中国" }));
+    element.dispatchEvent(new InputEvent("input", { bubbles: true, data: "中国", isComposing: false }));
+  });
+  await page.locator(".feedback-correct").waitFor();
+  const imeStatus = await page.locator(".ime-status").innerText();
+  assert.match(imeStatus, /已提交 2 字/u);
+  assert.match(imeStatus, /正确 2 字/u);
+  check("输入法模式提交后判定", imeStatus.replace(/\s+/gu, " "));
+  await screenshot("s2-ime.png");
+
+  await page.reload({ waitUntil: "load" });
+  assert.equal(await page.locator(".ime-input").count(), 1);
+  check("输入法模式刷新后保持", "设置写入 localStorage");
+
+  await page.getByRole("group", { name: "输入方式" }).getByRole("button", { name: "按键模式" }).click();
+  assert.equal(await page.locator(".ime-input").count(), 0);
 
   // 速度挑战交互
   for (let step = 0; step < 20; step += 1) {

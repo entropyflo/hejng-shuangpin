@@ -8,6 +8,7 @@ import {
   hanCharacters,
   inspectCurriculum,
   KNOWLEDGE_ITEMS,
+  sanitizePracticeText,
   type Curriculum,
 } from "./content";
 
@@ -211,5 +212,19 @@ describe("CUR-002 题库质量", () => {
     const serialized = JSON.stringify(CURRICULUM_JSON_SCHEMA);
     expect(serialized).toContain("contentVersion");
     expect(serialized).toContain("text-typing");
+  });
+});
+
+describe("练习文本清洗", () => {
+  it("保留汉字、允许的标点与空格，去掉拉丁字母和换行", () => {
+    expect(sanitizePracticeText("中国 abc，你好。\n第二行")).toBe("中国 ，你好。第二行");
+  });
+
+  it("按长度截断", () => {
+    expect(sanitizePracticeText("一二三四五", 3)).toBe("一二三");
+  });
+
+  it("纯非法字符返回空串", () => {
+    expect(sanitizePracticeText("abc123")).toBe("");
   });
 });

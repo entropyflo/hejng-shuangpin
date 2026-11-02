@@ -2,12 +2,16 @@ import { useState } from "react";
 import {
   CORRECTION_LABEL,
   HINT_LABEL,
+  INPUT_LABEL,
   readCorrectionMode,
   readHintMode,
+  readInputMode,
   writeCorrectionMode,
   writeHintMode,
+  writeInputMode,
   type CorrectionMode,
   type HintMode,
+  type InputMode,
 } from "../app/settings";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { useThemeState } from "../app/theme-context";
@@ -16,11 +20,13 @@ import { ReadingCorrection } from "../ui/ReadingCorrection";
 const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 const HINT_OPTIONS: HintMode[] = ["always", "auto", "hidden"];
 const CORRECTION_OPTIONS: CorrectionMode[] = ["auto", "strict", "continuous"];
+const INPUT_OPTIONS: InputMode[] = ["key", "ime"];
 
 export function SettingsPage() {
   const { preference, resolved, setPreference } = useThemeState();
   const [hintMode, setHintMode] = useState(() => readHintMode(window.localStorage));
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
+  const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
 
   function changeHint(mode: HintMode) {
     setHintMode(mode);
@@ -30,6 +36,11 @@ export function SettingsPage() {
   function changeCorrection(mode: CorrectionMode) {
     setCorrectionMode(mode);
     writeCorrectionMode(window.localStorage, mode);
+  }
+
+  function changeInput(mode: InputMode) {
+    setInputMode(mode);
+    writeInputMode(window.localStorage, mode);
   }
 
   return (
@@ -111,6 +122,32 @@ export function SettingsPage() {
               onClick={() => changeCorrection(option)}
             >
               {CORRECTION_LABEL[option]}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="panel" aria-labelledby="input-title">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">练习辅助</p>
+            <h2 id="input-title">输入方式</h2>
+          </div>
+          <p className="panel-note">
+            按键模式判定物理键与双拼码；输入法模式只判定已提交的汉字，组合中的候选不计分。
+          </p>
+        </div>
+
+        <div className="filter-row" role="group" aria-label="输入方式">
+          {INPUT_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={inputMode === option ? "chip is-active" : "chip"}
+              aria-pressed={inputMode === option}
+              onClick={() => changeInput(option)}
+            >
+              {INPUT_LABEL[option]}
             </button>
           ))}
         </div>

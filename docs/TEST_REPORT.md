@@ -174,3 +174,23 @@ Git 基线：`7d1aa98`（本次提交前）
 速度挑战只统计本次用时与正确字数，CPM 定义、星级与历史记录仍属 S3，未在此处伪造。
 
 尚未执行：真实系统 IME、Windows、PWA 安装/断网。
+
+## S2 / UI-003 按键 / 输入法双模式
+
+执行日期：2026-11-02（Asia/Shanghai）
+命令：`npm run verify:ui`（21 项断言），`npm test`（9 文件 / 119 测试）
+
+| 检查 | 结果 | 证据 |
+|---|---|---|
+| 模式切换 | PASS | 词句题出现“按键模式 / 输入法模式”切换，选择后立即生效并写入 localStorage |
+| 组合中不判定 | PASS | 合成 `compositionstart` + `input(isComposing: true)` 后显示“正在组合输入，未提交不判定” |
+| 提交后判定 | PASS | `compositionend` 提交“中国”后显示“已提交 2 字 / 正确 2 字 / 正确率 100%” |
+| 完成反馈 | PASS | 与目标完全一致时出现“已完成”，并说明删除/撤销会实时更新 |
+| 刷新保持 | PASS | 重新加载后仍为输入法模式 |
+| 切回按键模式 | PASS | 输入框切回双拼码输入，IME 文本框消失 |
+| 粘贴策略 | PASS（单元） | `sanitizePracticeText` 过滤拉丁字母与换行、保留汉字与允许标点、按长度截断 |
+| 回归 | PASS | typecheck / build exit 0；控制台 0 错误 |
+
+**真实性声明**：IME 检查使用浏览器合成事件，结果为 `SIMULATED_ONLY`。真实系统输入法（macOS/Windows 拼音、候选词替换、自动选词、撤销）**尚未人工验收**，不能据此声称 IME 已通过。
+
+尚未执行：真实系统 IME、Windows、PWA 安装/断网。

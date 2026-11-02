@@ -2,14 +2,17 @@ import type { KeyValueStorage } from "../scheme/readings";
 import type { Exercise } from "../curriculum/content";
 
 export type HintMode = "always" | "hidden" | "auto";
+export type InputMode = "key" | "ime";
 export type CorrectionMode = "auto" | "strict" | "continuous";
 export type CorrectionBehavior = "strict" | "continuous";
 
 export const HINT_MODE_KEY = "xiaohe.hint-mode.v1";
+export const INPUT_MODE_KEY = "xiaohe.input-mode.v1";
 export const CORRECTION_MODE_KEY = "xiaohe.correction-mode.v1";
 export const AUTO_HINT_STREAK = 3;
 
 const HINT_MODES: readonly HintMode[] = ["always", "hidden", "auto"];
+const INPUT_MODES: readonly InputMode[] = ["key", "ime"];
 const CORRECTION_MODES: readonly CorrectionMode[] = ["auto", "strict", "continuous"];
 
 export function parseHintMode(value: string | null | undefined): HintMode {
@@ -28,6 +31,18 @@ export function shouldShowHint(mode: HintMode, correctStreak: number): boolean {
   if (mode === "always") return true;
   if (mode === "hidden") return false;
   return correctStreak < AUTO_HINT_STREAK;
+}
+
+export function parseInputMode(value: string | null | undefined): InputMode {
+  return INPUT_MODES.includes(value as InputMode) ? (value as InputMode) : "key";
+}
+
+export function readInputMode(storage: KeyValueStorage): InputMode {
+  return parseInputMode(storage.getItem(INPUT_MODE_KEY));
+}
+
+export function writeInputMode(storage: KeyValueStorage, mode: InputMode): void {
+  storage.setItem(INPUT_MODE_KEY, mode);
 }
 
 export function parseCorrectionMode(value: string | null | undefined): CorrectionMode {
@@ -52,6 +67,11 @@ export const HINT_LABEL: Record<HintMode, string> = {
   always: "始终显示",
   hidden: "隐藏",
   auto: `自动（连对 ${AUTO_HINT_STREAK} 题后隐藏）`,
+};
+
+export const INPUT_LABEL: Record<InputMode, string> = {
+  key: "按键模式",
+  ime: "输入法模式",
 };
 
 export const CORRECTION_LABEL: Record<CorrectionMode, string> = {

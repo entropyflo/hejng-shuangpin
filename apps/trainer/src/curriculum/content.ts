@@ -130,6 +130,13 @@ export function hanCharacters(text: string): string[] {
   return Array.from(text).filter((character) => HAN_CHARACTER.test(character));
 }
 
+export function sanitizePracticeText(raw: string, maxLength = 160): string {
+  return Array.from(raw)
+    .filter((character) => HAN_CHARACTER.test(character) || ALLOWED_PUNCTUATION.has(character))
+    .join("")
+    .slice(0, maxLength);
+}
+
 function encodeReading(reading: string): string {
   return encodeSyllable(parsePinyinSyllable(reading)).code;
 }

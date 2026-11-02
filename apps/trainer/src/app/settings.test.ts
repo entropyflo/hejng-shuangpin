@@ -3,14 +3,18 @@ import {
   AUTO_HINT_STREAK,
   CORRECTION_MODE_KEY,
   HINT_MODE_KEY,
+  INPUT_MODE_KEY,
   parseCorrectionMode,
+  parseInputMode,
   parseHintMode,
   readCorrectionMode,
   readHintMode,
+  readInputMode,
   resolveCorrection,
   shouldShowHint,
   writeCorrectionMode,
   writeHintMode,
+  writeInputMode,
 } from "./settings";
 
 function memoryStorage(initial: Record<string, string> = {}) {
@@ -78,5 +82,22 @@ describe("纠错方式", () => {
     writeCorrectionMode(storage, "strict");
     expect(storage.getItem(CORRECTION_MODE_KEY)).toBe("strict");
     expect(readCorrectionMode(storage)).toBe("strict");
+  });
+});
+
+describe("输入方式", () => {
+  it("非法值回退到按键模式", () => {
+    expect(parseInputMode("key")).toBe("key");
+    expect(parseInputMode("ime")).toBe("ime");
+    expect(parseInputMode(null)).toBe("key");
+    expect(parseInputMode("handwriting")).toBe("key");
+  });
+
+  it("读写 localStorage 键", () => {
+    const storage = memoryStorage();
+    expect(readInputMode(storage)).toBe("key");
+    writeInputMode(storage, "ime");
+    expect(storage.getItem(INPUT_MODE_KEY)).toBe("ime");
+    expect(readInputMode(storage)).toBe("ime");
   });
 });

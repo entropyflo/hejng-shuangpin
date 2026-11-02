@@ -1,5 +1,15 @@
 import { useEffect, useState, type KeyboardEvent } from "react";
-import { readCorrectionMode, readHintMode, resolveCorrection, shouldShowHint, HINT_LABEL } from "../app/settings";
+import {
+  HINT_LABEL,
+  INPUT_LABEL,
+  readCorrectionMode,
+  readHintMode,
+  readInputMode,
+  resolveCorrection,
+  shouldShowHint,
+  writeInputMode,
+  type InputMode,
+} from "../app/settings";
 import type { Exercise } from "../curriculum/content";
 import {
   buildReverseRecallOptions,
@@ -10,6 +20,7 @@ import {
 } from "../curriculum/practice";
 import type { FlypyFinal } from "../scheme/flypy";
 import { HintKeyboard } from "./HintKeyboard";
+import { ImePractice } from "./ImePractice";
 import { SpeedChallenge } from "./SpeedChallenge";
 
 const KIND_LABEL: Record<Exercise["kind"], string> = {
@@ -39,6 +50,7 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
   const [streak, setStreak] = useState(0);
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const [locked, setLocked] = useState(false);
+  const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
 
   useEffect(() => {
     if (!flashKey) return;
@@ -60,6 +72,15 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
   const sequence = expectedKeySequence(exercise);
   const behavior = resolveCorrection(correctionMode, exercise.kind);
   const showKeyboard = sequence.length > 0 && (shouldShowHint(hintMode, streak) || flashKey !== null);
+  const useIme = inputMode === "ime" && exercise.kind === "text-typing";
+
+  function changeInputMode(mode: InputMode) {
+    setInputMode(mode);
+    writeInputMode(window.localStorage, mode);
+    setInput("");
+    setFeedback(null);
+    setLocked(false);
+  }
 
   function flashNextKey() {
     const next = sequence[input.length] ?? sequence[0];
@@ -154,7 +175,23 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
         </span>
       </div>
 
-      <h3>{exercise.prompt}</h3>
+      <h3>{useIme ? `用系统中文输入法输入：“${exercise.text}”` : exercise.prompt}</h3>
+
+      {exercise.kind === "text-typing" ? (
+        <div className="filter-row mode-row" role="group" aria-label="输入方式">
+          {(["key", "ime"] as InputMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={inputMode === mode ? "chip is-active" : "chip"}
+              aria-pressed={inputMode === mode}
+              onClick={() => changeInputMode(mode)}
+            >
+              {INPUT_LABEL[mode]}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {exercise.kind === "speed-challenge" ? (
         <SpeedChallenge text={exercise.text} durationSeconds={exercise.durationSeconds} />
@@ -177,6 +214,8 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
             );
           })}
         </div>
+      ) : useIme ? (
+        <ImePractice text={exercise.text} />
       ) : (
         <>
           <div className="answer-row">
@@ -231,8 +270,8 @@ export function ExerciseRunner({ exercises }: { exercises: Exercise[] }) {
 
       <div className="exercise-footer">
         <span className="muted small">
-          知识点：{exercise.knowledgeIds.join("、")} · 提示：{HINT_LABEL[hintMode]} · 纠错：
-          {behavior === "strict" ? "严格" : "连续"}
+          知识点：{exercise.knowledgeIds.join("、")} ·{" "}
+          {useIme ? "输入法模式：按已提交文本判定" : `提示：${HINT_LABEL[hintMode]} · 纠错：${behavior === "strict" ? "严格" : "连续"}`}
         </span>
         <button type="button" className="secondary" onClick={next} disabled={locked}>
           下一题

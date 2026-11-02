@@ -83,7 +83,9 @@ export function LessonPage({ lessonId }: { lessonId: string }) {
             <p className="eyebrow">本课练习</p>
             <h2 id="practice-title">共 {exercises.length} 题</h2>
           </div>
-          <p className="panel-note">使用实体键盘字母键作答，按物理键位识别；按 Enter 可直接检查。</p>
+          <p className="panel-note">
+            按键模式按物理键位识别，按 Enter 可直接检查；输入法模式只判定已提交的汉字。
+          </p>
         </div>
         <ExerciseRunner key={lesson.id} exercises={exercises} />
       </section>
