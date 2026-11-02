@@ -1,0 +1,19 @@
+{
+  "name": "鹤径 · 小鹤双拼学习器",
+  "short_name": "鹤径",
+  "description": "原创、离线优先的小鹤双拼学习器",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f1e8",
+  "theme_color": "#f4f1e8",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

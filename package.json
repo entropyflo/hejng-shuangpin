@@ -1,0 +1,19 @@
+{
+  "name": "xiaohe-shuangpin-trainer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "小鹤双拼离线学习器与独立 Agent 协调器",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @xiaohe/trainer",
+    "dev": "npm run dev --workspace @xiaohe/trainer",
+    "test": "npm run test --workspace @xiaohe/trainer",
+    "typecheck": "npm run typecheck --workspace @xiaohe/trainer"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}
