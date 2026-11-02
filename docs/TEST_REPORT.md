@@ -381,7 +381,7 @@ Git 基线：`7d1aa98`（本次提交前）
 ## 产品补齐：关卡状态、自定义文本、学习天数、插回与加权混合
 
 执行日期：2026-11-02（Asia/Shanghai）
-命令：`npm test --workspace @xiaohe/trainer`（19 文件 / 198 测试），`npm run verify:ui`（45 项断言）
+命令：`npm test --workspace @xiaohe/trainer`（20 文件 / 198 测试），`npm run verify:ui`（45 项断言）
 
 | 需求 | 实现 | 验证 |
 |---|---|---|

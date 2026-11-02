@@ -1,19 +1,41 @@
-# Xiaohe Shuangpin Trainer — 工程交付包
+# 鹤径 · 小鹤双拼学习器
 
-**版本：** Spec 1.0 · **冻结日期：** 2026-11-02 · **状态：** 42 项需求决策已确认，尚未进入软件开发。
+**规格：** Spec 1.0（42 项决策冻结于 2026-11-02）
+**状态：** 学习器已实现并通过自动化验证；本地 Agent 协调器内核完成，真实接力已验证，G5 尚余恢复类测试。
 
-本包是可直接用于实际实施的产品与工程文档，**不是已开发完成的软件**。产品包含两个独立系统：
+## 这是什么
 
-1. **小鹤双拼离线学习 PWA（核心产品）**：桌面优先、纯简体中文、七天入门与长期强化、智能复习、真实输入法测速。
-2. **本地 Agent 协调器（开发基础设施）**：Codex 为主，WorkBuddy International 在额度耗尽后自动接力；本地 Web 控制台 + CLI；严格权限、费用、验收边界。
+一个离线优先的小鹤双拼学习 PWA，以及一个可选的本地 Agent 协调器。
 
-## 开始使用（推荐）
+- **学习器**：七天课程、151 道原创题、按键/输入法双模式、提示与纠错、复习队列、错题与热力图、CPM 对比、PWA 离线、备份导入。
+- **协调器**：Codex 为主、额度耗尽自动切换到 WorkBuddy；本地 CLI 与回环控制台，默认 dry-run。
 
-1. 解压工程交付包至希望创建项目的目录。先阅读 `DECISIONS.md` 和 `REQUIREMENTS.md`，确认范围。
-2. **使用 Codex：** 打开 Codex，选择该项目目录，直接粘贴 `CODEX_PROMPT.md` 的全部内容；要求先做阶段 0 环境与接口能力探测，再进入开发。
-3. **使用 WorkBuddy International：** 让它访问相同目录并读取 `WORKBUDDY_PROMPT.md`、`AGENTS.md`、`docs/` 等交接文件。它是备用 Agent，不是 ChatGPT Work。
-4. 验收遵照 `TEST_ACCEPTANCE.md`；关键节点必须人工批准后才能进入下一阶段。
-5. 要求 Agent 将本规格包纳入项目仓库，持续更新项目进度与 Git 检查点，不要依赖会话记忆。
+## 快速开始
+
+```sh
+npm install
+npm run build
+npm run preview --workspace @xiaohe/trainer   # 打开 http://127.0.0.1:4174/
+```
+
+macOS 也可双击 `release/start-macos.command`（127.0.0.1:4173），Windows 用 `release/start-windows.bat`。
+安装为 PWA、离线使用与备份说明见 `docs/PACKAGING.md`。
+
+## 测试
+
+```sh
+npm run test:all     # 学习器 198 项 + 协调器 35 项
+npm run verify:ui    # 45 项浏览器断言（需先 build 并启动 preview）
+npm run coord -- status
+```
+
+## 当前边界
+
+- 自定义文本目前只支持输入法模式练习（离线词典不足以覆盖任意汉字）。
+- 真实系统输入法、Windows 启动脚本、屏幕阅读器、签名安装包未在自动化中验证。
+- 协调器的真实额度接力已实测通过；`COORD-T06/T09/T10/T12` 与系统重启恢复仍未完成。
+
+进度与交接见 `docs/PROGRESS.md`、`docs/HANDOFF.md`、`docs/TEST_REPORT.md`。
 
 ## 文档导航
 

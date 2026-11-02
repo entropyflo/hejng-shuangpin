@@ -136,7 +136,7 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <footer className="page-footer">
         <p>
-          课程、题库与讲解均为本项目原创。计时测速、间隔复习、热力图与离线安装属于后续阶段，本页不会用占位数据冒充成绩。
+          课程、题库与讲解均为本项目原创。学习记录、复习排程与统计只保存在本机浏览器，不上传服务器。
         </p>
       </footer>
 
