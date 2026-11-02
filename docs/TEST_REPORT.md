@@ -79,3 +79,19 @@ SCH-001 不包含零声母与完整拼音正规化；这些项目保持 `NOT_RUN
 | 仓储重新实例化 | SIMULATED_ONLY | 内存 Storage 适配器模拟重新打开后可恢复；真实浏览器 localStorage 尚未接 UI |
 | 首轮自动化 | FAIL | 3 个断言把“属性不存在”误写为“属性值 undefined”；领域结果正确，测试已修正 |
 | 修复后回归 | PASS | `npm run typecheck` exit 0；`npm test` 3 文件/58 测试 PASS；`npm run build` exit 0 |
+
+## S1 / CUR-001～CUR-002 增量
+
+执行日期：2026-11-02（Asia/Shanghai）
+Git 基线：`7d1aa98`（本次提交前）
+
+| 测试 | 结果 | 证据 |
+|---|---|---|
+| CUR-T01 七天课程结构 | PASS | 7 天全部 `locked: false`；每天固定“导学/演示/实操/小测/混合”五步；七天合计覆盖五种题型 |
+| CUR-T02 分层原创题库 | PASS | 单字 12、双字词 8、多字词 5、短句 4、段落 1、速度 3；每题含读音、双拼码、解释、错误提示与知识点 |
+| CUR-T02b 键位与零声母覆盖 | PASS | 23 个声母、35 个展示韵母、12 个零声母均有例题；26 个字母键全部出现 |
+| CUR-T03 一致性筛查 | PASS | `inspectCurriculum` 对正常题库返回空数组；注入重复 ID、错码、缺题、读音数量不符、未知读音、未知知识点、重复文本、非法字符、未覆盖知识点共 9 类坏题均被识别 |
+| CUR-T04 题库 JSON Schema | PASS | `z.toJSONSchema` 导出 draft-2020-12，含 `contentVersion`/`text-typing`，可 JSON 序列化 |
+| CUR-T05 全量回归 | PASS | `npm run typecheck` exit 0；`npm test` 4 文件/75 测试 PASS；`npm run build` exit 0 |
+
+说明：本轮仅做领域层与内容校验，未接入真实浏览器 IME，因此不声称任何输入法或 UI 验收通过。JSON Schema 为构建期生成并随代码导出，未引入 `ajv` 等运行时校验依赖。
