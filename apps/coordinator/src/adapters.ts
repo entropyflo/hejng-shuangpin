@@ -29,6 +29,7 @@ export type CommandSpec = {
   args: string[];
   promptAsArg?: boolean;
   timeoutMs?: number;
+  env?: (base: NodeJS.ProcessEnv) => NodeJS.ProcessEnv;
 };
 
 export function createCommandAdapter(name: AgentName, spec: CommandSpec): AgentAdapter {
@@ -37,7 +38,12 @@ export function createCommandAdapter(name: AgentName, spec: CommandSpec): AgentA
     run(task) {
       return new Promise<RunResult>((resolve) => {
         const args = spec.promptAsArg === false ? spec.args : [...spec.args, task.prompt];
-        const child = spawn(spec.command, args, { cwd: task.cwd, stdio: ["ignore", "pipe", "pipe"] });
+        const environment = spec.env ? spec.env({ ...process.env }) : process.env;
+        const child = spawn(spec.command, args, {
+          cwd: task.cwd,
+          stdio: ["ignore", "pipe", "pipe"],
+          env: environment,
+        });
         let output = "";
         const timer = setTimeout(() => child.kill("SIGTERM"), spec.timeoutMs ?? 120_000);
 
@@ -68,10 +74,33 @@ export function codexAdapter(options: { command?: string; timeoutMs?: number } =
   });
 }
 
-export function codeBuddyAdapter(options: { command?: string; timeoutMs?: number } = {}): AgentAdapter {
+export function codeBuddyArgs(options: { port?: number } = {}): string[] {
+  const args = [
+    "-p",
+    "--no-session-persistence",
+    "--tools",
+    "",
+    "--output-format",
+    "stream-json",
+    "--max-turns",
+    "1",
+  ];
+  if (options.port !== undefined) args.push("--port", String(options.port));
+  return args;
+}
+
+export function codeBuddyAdapter(
+  options: { command?: string; timeoutMs?: number; port?: number } = {},
+): AgentAdapter {
   return createCommandAdapter("workbuddy", {
     command: options.command ?? "codebuddy",
-    args: ["-p", "--no-session-persistence", "--tools", "", "--output-format", "stream-json", "--max-turns", "1"],
+    args: codeBuddyArgs({ port: options.port }),
     timeoutMs: options.timeoutMs,
+    // 从 WorkBuddy 应用内部启动时，继承的代理端口会与 CLI 自己的本地服务冲突。
+    env: (base) => {
+      const environment = { ...base };
+      delete environment.CODEBUDDY_SERVICE_PROXY_URL;
+      return environment;
+    },
   });
 }

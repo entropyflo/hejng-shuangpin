@@ -359,3 +359,21 @@ Git 基线：`7d1aa98`（本次提交前）
 - 已完成：单写锁、原子状态机、故障分类与退避、模拟接力、CLI、回环控制台（Origin + token）。
 - 未完成：系统重启恢复、真实 Agent 调用与真实额度耗尽接力。
 - **G5 不能仅凭模拟通过**：`TEST_ACCEPTANCE.md` 明确 COORD-T04 未发生时应标 `NOT_RUN`，因此真实自动接力仍为阻塞项。
+
+## S5 / 真实额度耗尽与自动接力（COORD-T03 / T04）
+
+执行时间：2026-11-02 23:47～23:49（Asia/Shanghai）
+环境：macOS arm64；`codex-cli 0.166.0`；`codebuddy 2.179.0`
+沙箱：临时 Git 目录，`--sandbox read-only`、`--ephemeral`，提示只输出固定字符串且不得读写文件
+
+| 步骤 | 结果 | 证据（已脱敏） |
+|---|---|---|
+| 第 1 次真实 codex 调用 | FAIL（预期） | exit 1，输出 “You’ve hit your usage limit … try again at Nov 3rd, 2026 1:52 AM”；`classifyFailure` 判定 `quota` |
+| 第 1 次接力 | FAIL（环境问题） | codebuddy 报 `Failed to start server. Is port 60698 in use?`；60698 是 WorkBuddy 应用注入的 `CODEBUDDY_SERVICE_PROXY_URL` 端口 |
+| 修复 | PASS | 适配器启动 codebuddy 时移除 `CODEBUDDY_SERVICE_PROXY_URL`，并支持显式 `--port`；新增 2 项参数单测 |
+| 第 2 次真实接力 | PASS | 事件序列 `run-started → failure-quota → handoff-to-workbuddy → run-succeeded`；phase `done`，耗时约 29 秒 |
+| 文件影响 | 无 | 临时目录只有 `.git` 与 README，内容未变 |
+
+**结论**：`COORD-T03` 与 `COORD-T04` 首次获得真实证据（不是模拟），自动接力在真实额度耗尽下可用。真实 CLI 输出与提示均未写入仓库，仅保留脱敏摘要。
+
+**仍需人工/后续验证**：COORD-T06（杀进程/断电恢复）、T09（未授权安装/sudo 被 OS 拒绝）、T10（费用与高危权限提示）、T12（工作区不一致/旧 Agent 存活），以及 ORG-007 系统重启恢复。

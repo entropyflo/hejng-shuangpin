@@ -36,10 +36,10 @@
 | G4 | 014, 015, 027, 029 | PWA-001, DAT-002, PKG-001 | DONE | 用户 | 已通过；S5 从协调器内核开始 | 用户 2026-11-02 23:41 确认“通过” | — |
 | ORG-001 | 034, 035, 040, 041 | ENV-003 | DONE | WorkBuddy | 锁文件格式变更需兼容旧版 | 单写锁 6 项测试 | S5 提交 |
 | ORG-002 | 035, 036, 039 | ENV-003 | DONE | WorkBuddy | 状态字段变更需升 version | 状态机 6 项测试 | S5 提交 |
-| ORG-003 | 034, 035 | ORG-001 | DONE | WorkBuddy | 真实 CLI 调用未执行 | 适配器代码；真实运行 NOT_RUN | S5 提交 |
-| ORG-004 | 034, 035 | ORG-001 | DONE | WorkBuddy | 真实 CLI 调用未执行 | 适配器代码；真实运行 NOT_RUN | S5 提交 |
-| ORG-005 | 035, 039 | ORG-003, ORG-004 | DONE | WorkBuddy | 真实额度耗尽未触发 | 假适配器接力 7 项测试；T03 PASS / T04 NOT_RUN | S5 提交 |
+| ORG-003 | 034, 035 | ORG-001 | DONE | WorkBuddy | 输出格式变化时复核分类 | 真实 codex 调用（只读沙箱）返回额度耗尽并被正确分类 | S5 真实事件提交 |
+| ORG-004 | 034, 035 | ORG-001 | DONE | WorkBuddy | 端口冲突时用 --port | 真实 codebuddy 调用成功；修复代理端口冲突 | S5 真实事件提交 |
+| ORG-005 | 035, 039 | ORG-003, ORG-004 | DONE | WorkBuddy | 真实额度事件已记录 | COORD-T03/T04 真实 PASS：额度耗尽→接力→成功 | S5 真实事件提交 |
 | ORG-006 | 037 | ORG-002 | DONE | WorkBuddy | 控制台功能按需扩展 | CLI 冒烟；控制台 5 项测试 | S5 提交 |
 | ORG-007 | 038, 039 | ORG-002 | IN_PROGRESS | WorkBuddy | 系统重启恢复未实现 | 原子状态与暂停语义已测；重启恢复 NOT_RUN | S5 提交 |
-| G5 | 032～041 | ORG-001～007 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 真实额度耗尽接力需实测；不可用则标 BLOCKED | COORD-T04 NOT_RUN | — |
+| G5 | 032～041 | ORG-001～007 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 剩余 T06/T09/T10/T12 与 ORG-007 待验 | COORD-T03/T04 真实 PASS；其余未执行 | — |
 | QA-001～005 | 031～033 | 各阶段 | TODO | Codex + 用户 | 随阶段执行 | TEST_ACCEPTANCE | — |
