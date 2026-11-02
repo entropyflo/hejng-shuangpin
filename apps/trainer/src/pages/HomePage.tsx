@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { readLastLessonId } from "../app/storage";
 import { CURRICULUM, KNOWLEDGE_ITEMS, LESSONS } from "../curriculum/content";
+import { getRepository } from "../data";
+import { buildDailyPlan } from "../review/plan";
 import { Link } from "../ui/Link";
 
 const ENTRIES = [
@@ -13,6 +16,24 @@ export function HomePage() {
   const lessonIds = LESSONS.map((lesson) => lesson.id);
   const lastLessonId = readLastLessonId(window.localStorage, lessonIds);
   const resume = LESSONS.find((lesson) => lesson.id === lastLessonId) ?? LESSONS[0];
+  const [dueCount, setDueCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getRepository()
+      .listDue(Date.now())
+      .then((due) => {
+        if (!cancelled) setDueCount(due.length);
+      })
+      .catch(() => {
+        if (!cancelled) setDueCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const plan = buildDailyPlan({ dueCount: dueCount ?? 0, nextLesson: resume });
 
   return (
     <>
@@ -50,6 +71,30 @@ export function HomePage() {
             <dd>{lastLessonId ? `第 ${resume.day} 天` : "还没有记录"}</dd>
           </div>
         </dl>
+      </section>
+
+      <section aria-labelledby="plan-title">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">今日建议</p>
+            <h2 id="plan-title">按到期与进度安排</h2>
+          </div>
+          <span className="status">
+            {dueCount === null ? "检查到期…" : dueCount > 0 ? `${dueCount} 个到期` : "无到期复习"}
+          </span>
+        </div>
+
+        <div className="plan-grid">
+          {plan.map((item) => (
+            <Link key={item.kind} to={item.to} className={`plan-card plan-${item.kind}`}>
+              <span className="plan-kind">
+                {item.kind === "review" ? "复习" : item.kind === "lesson" ? "新课" : "混合"}
+              </span>
+              <strong>{item.title}</strong>
+              <span>{item.detail}</span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section aria-labelledby="path-title">

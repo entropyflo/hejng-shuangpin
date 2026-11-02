@@ -660,3 +660,49 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 @media (max-width: 720px) {
   .summary-grid { grid-template-columns: repeat(2, minmax(90px, 1fr)); }
 }
+
+/* ---------- daily plan & heatmap ---------- */
+
+.plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 20px; }
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+}
+.plan-card:hover { border-color: var(--accent); }
+.plan-kind { color: var(--accent); font-size: 0.72rem; font-weight: 750; letter-spacing: 0.1em; text-transform: uppercase; }
+.plan-card strong { font-size: 1rem; }
+.plan-card > span:last-child { color: var(--text-soft); font-size: 0.86rem; line-height: 1.6; }
+.plan-review { border-left: 4px solid var(--accent-soft); }
+
+.heatmap { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 20px; }
+.heat-key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.heat-letter { font-size: 0.82rem; font-weight: 800; }
+.heat-value { color: var(--muted); font-size: 0.6rem; }
+.heat-key.is-empty { opacity: 0.55; }
+.heat-key.is-strong { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-text); }
+.heat-key.is-mid { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn-text); }
+.heat-key.is-weak { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad-text); }
+.heat-key.is-strong .heat-value,
+.heat-key.is-mid .heat-value,
+.heat-key.is-weak .heat-value { color: inherit; opacity: 0.8; }
+.heat-key:focus-visible { outline: 3px solid var(--accent-soft); outline-offset: 2px; }

@@ -51,3 +51,17 @@ describe("路径生成", () => {
     }
   });
 });
+
+describe("复习与专项路由", () => {
+  it("解析复习页与键位专项", () => {
+    expect(parseRoute("/review")).toEqual({ name: "review" });
+    expect(parseRoute("/practice/key/v")).toEqual({ name: "practiceKey", key: "v" });
+    expect(parseRoute("/practice/key/V")).toEqual({ name: "notFound", path: "/practice/key/V" });
+  });
+
+  it("专项路径可往返", () => {
+    expect(pathFor({ name: "practiceKey", key: "q" })).toBe("/practice/key/q");
+    expect(parseRoute(pathFor({ name: "practiceKey", key: "q" }))).toEqual({ name: "practiceKey", key: "q" });
+    expect(parseRoute(pathFor({ name: "review" }))).toEqual({ name: "review" });
+  });
+});

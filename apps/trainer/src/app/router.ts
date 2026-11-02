@@ -5,6 +5,8 @@ export type Route =
   | { name: "course" }
   | { name: "lesson"; lessonId: string }
   | { name: "practice" }
+  | { name: "practiceKey"; key: string }
+  | { name: "review" }
   | { name: "keyboard" }
   | { name: "stats" }
   | { name: "compare" }
@@ -12,6 +14,7 @@ export type Route =
   | { name: "notFound"; path: string };
 
 const LESSON_PATTERN = /^\/lesson\/([A-Za-z0-9-]+)$/u;
+const PRACTICE_KEY_PATTERN = /^\/practice\/key\/([a-z])$/u;
 const NAVIGATE_EVENT = "xiaohe:navigate";
 
 export function parseRoute(pathname: string): Route {
@@ -24,6 +27,11 @@ export function parseRoute(pathname: string): Route {
   if (lesson) return { name: "lesson", lessonId: lesson[1] };
 
   if (path === "/practice") return { name: "practice" };
+
+  const practiceKey = PRACTICE_KEY_PATTERN.exec(path);
+  if (practiceKey) return { name: "practiceKey", key: practiceKey[1] };
+
+  if (path === "/review") return { name: "review" };
   if (path === "/keyboard") return { name: "keyboard" };
   if (path === "/stats") return { name: "stats" };
   if (path === "/compare") return { name: "compare" };
@@ -42,6 +50,10 @@ export function pathFor(route: Route): string {
       return `/lesson/${route.lessonId}`;
     case "practice":
       return "/practice";
+    case "practiceKey":
+      return `/practice/key/${route.key}`;
+    case "review":
+      return "/review";
     case "keyboard":
       return "/keyboard";
     case "stats":
@@ -87,6 +99,7 @@ export function useRoute(): Route {
 export const NAV_ITEMS: ReadonlyArray<{ route: Route["name"]; label: string; path: string }> = [
   { route: "home", label: "首页", path: "/home" },
   { route: "course", label: "课程", path: "/course" },
+  { route: "review", label: "复习", path: "/review" },
   { route: "practice", label: "自由训练", path: "/practice" },
   { route: "keyboard", label: "键位", path: "/keyboard" },
   { route: "stats", label: "统计", path: "/stats" },

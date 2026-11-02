@@ -339,6 +339,55 @@ try {
   check("IndexedDB 刷新后仍保留", "重新加载统计页仍有记录");
   await screenshot("s2-stats.png");
 
+  // 热力图与错题本
+  await goto("/stats");
+  assert.equal(await page.locator(".heat-key").count(), 26);
+  assert.ok((await page.locator(".heat-key.is-weak").count()) > 0);
+  const mistakesText = await page.locator('[aria-labelledby="mistakes-title"] .data-table').innerText();
+  assert.match(mistakesText, /韵母“a”/u);
+  await screenshot("s3-heatmap.png");
+  check("键位热力图与错题本", "26 键有正确率着色，错题本列出最常错的题");
+
+  await page.locator(".heat-key").first().click();
+  await page.waitForURL(/\/practice\/key\/[a-z]/u);
+  assert.match(await page.locator(".page-title").innerText(), /键专项/u);
+  check("热力图跳转键位专项", await page.locator(".page-title").innerText());
+
+  // 注入到期记录，验证复习队列与首页计划
+  await page.evaluate(async () => {
+    const request = indexedDB.open("xiaohe-trainer");
+    const db = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const tx = db.transaction("mastery", "readwrite");
+    tx.objectStore("mastery").put({
+      knowledgeId: "final.ang",
+      attempts: 1,
+      correctAttempts: 0,
+      streak: 0,
+      ease: 2,
+      intervalDays: 0,
+      lastPracticedAt: Date.now() - 1000,
+      nextDueAt: Date.now() - 1000,
+      lastResponseMs: 3000,
+    });
+    await new Promise((resolve) => {
+      tx.oncomplete = resolve;
+    });
+    db.close();
+  });
+
+  await goto("/review");
+  await page.locator(".exercise-card").waitFor();
+  assert.match(await page.locator("#review-title").innerText(), /1 题/u);
+  await screenshot("s3-review.png");
+  check("到期复习队列", await page.locator("#review-title").innerText());
+
+  await goto("/home");
+  assert.match(await page.locator(".plan-grid").innerText(), /复习 1 个到期知识点/u);
+  check("首页今日计划含到期复习", "计划优先显示复习卡片");
+
   // 404
   await goto("/nope");
   assert.match(await page.locator(".page-title").innerText(), /没有这个页面/u);

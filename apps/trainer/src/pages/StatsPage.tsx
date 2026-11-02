@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { LESSONS } from "../curriculum/content";
 import { getRepository } from "../data";
 import { starsToText } from "../data/metrics";
 import type { Attempt, PracticeSession } from "../data/types";
+import { keyAccuracy, summarizeMistakes } from "../review/plan";
+import { KeyHeatmap } from "../ui/KeyHeatmap";
 import { Link } from "../ui/Link";
 
 const KIND_LABEL: Record<Attempt["kind"], string> = {
@@ -60,6 +63,9 @@ export function StatsPage() {
     }, null);
     return { total, correct, accuracy: total === 0 ? 0 : Math.round((correct / total) * 100), bestCpm };
   }, [attempts, sessions]);
+
+  const keyStats = useMemo(() => keyAccuracy(attempts), [attempts]);
+  const mistakes = useMemo(() => summarizeMistakes(attempts, 8), [attempts]);
 
   const byKind = useMemo(() => {
     const map = new Map<string, { total: number; correct: number }>();
@@ -171,6 +177,62 @@ export function StatsPage() {
                 ))}
               </tbody>
             </table>
+          </section>
+
+          <section className="panel" aria-labelledby="heatmap-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">薄弱定位</p>
+                <h2 id="heatmap-title">键位热力图</h2>
+              </div>
+              <p className="panel-note">只统计键位认知题；点任意键直接进入该键的专项练习。</p>
+            </div>
+            <KeyHeatmap stats={keyStats} />
+          </section>
+
+          <section className="panel" aria-labelledby="mistakes-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">错题本</p>
+                <h2 id="mistakes-title">最常错的题</h2>
+              </div>
+              <p className="panel-note">按错误次数排序；点“重练”回到对应课时。</p>
+            </div>
+            {mistakes.length === 0 ? (
+              <p className="muted">还没有错题。继续练习后，答错的题目会出现在这里。</p>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">题目</th>
+                    <th scope="col">错误次数</th>
+                    <th scope="col">最近错误</th>
+                    <th scope="col">重练</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mistakes.map((mistake) => {
+                    const lesson = LESSONS.find((item) => item.exerciseIds.includes(mistake.exerciseId));
+                    return (
+                      <tr key={mistake.exerciseId}>
+                        <td>{mistake.prompt}</td>
+                        <td>{mistake.count}</td>
+                        <td>{DATE_FORMAT.format(new Date(mistake.lastAt))}</td>
+                        <td>
+                          {lesson ? (
+                            <Link to={`/lesson/${lesson.id}`} className="link">
+                              第 {lesson.day} 天
+                            </Link>
+                          ) : (
+                            <span className="muted">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </section>
 
           <section className="panel" aria-labelledby="history-title">
