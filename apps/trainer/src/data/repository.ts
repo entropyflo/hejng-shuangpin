@@ -1,4 +1,4 @@
-import type { Attempt, MasteryRecord, PracticeSession } from "./types";
+import type { Attempt, ComparisonRecord, MasteryRecord, PracticeSession } from "./types";
 
 export interface TrainingRepository {
   addAttempt(attempt: Attempt): Promise<void>;
@@ -8,6 +8,8 @@ export interface TrainingRepository {
   getMastery(knowledgeId: string): Promise<MasteryRecord | undefined>;
   putMastery(record: MasteryRecord): Promise<void>;
   listDue(now: number): Promise<MasteryRecord[]>;
+  saveComparison(record: ComparisonRecord): Promise<void>;
+  listComparisons(limit: number): Promise<ComparisonRecord[]>;
   clear(): Promise<void>;
 }
 
@@ -15,6 +17,7 @@ export class MemoryTrainingRepository implements TrainingRepository {
   private attempts: Attempt[] = [];
   private sessions: PracticeSession[] = [];
   private mastery = new Map<string, MasteryRecord>();
+  private comparisons: ComparisonRecord[] = [];
 
   async addAttempt(attempt: Attempt): Promise<void> {
     this.attempts.push(attempt);
@@ -47,9 +50,19 @@ export class MemoryTrainingRepository implements TrainingRepository {
       .sort((left, right) => left.nextDueAt - right.nextDueAt);
   }
 
+  async saveComparison(record: ComparisonRecord): Promise<void> {
+    this.comparisons = this.comparisons.filter((item) => item.id !== record.id);
+    this.comparisons.push(record);
+  }
+
+  async listComparisons(limit: number): Promise<ComparisonRecord[]> {
+    return [...this.comparisons].sort((left, right) => right.at - left.at).slice(0, limit);
+  }
+
   async clear(): Promise<void> {
     this.attempts = [];
     this.sessions = [];
     this.mastery.clear();
+    this.comparisons = [];
   }
 }

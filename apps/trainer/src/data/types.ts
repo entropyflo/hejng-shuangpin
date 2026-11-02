@@ -42,3 +42,12 @@ export type MasteryRecord = {
   nextDueAt: number;
   lastResponseMs: number;
 };
+
+export type ComparisonRecord = {
+  id: string;
+  textId: string;
+  text: string;
+  flypyCpm: number;
+  quanpinCpm: number;
+  at: number;
+};

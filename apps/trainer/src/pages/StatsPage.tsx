@@ -5,6 +5,7 @@ import { starsToText } from "../data/metrics";
 import type { Attempt, PracticeSession } from "../data/types";
 import { keyAccuracy, summarizeMistakes } from "../review/plan";
 import { KeyHeatmap } from "../ui/KeyHeatmap";
+import { Sparkline } from "../ui/Sparkline";
 import { Link } from "../ui/Link";
 
 const KIND_LABEL: Record<Attempt["kind"], string> = {
@@ -64,6 +65,18 @@ export function StatsPage() {
     return { total, correct, accuracy: total === 0 ? 0 : Math.round((correct / total) * 100), bestCpm };
   }, [attempts, sessions]);
 
+  const accuracySeries = useMemo(
+    () => [...(sessions ?? [])].reverse().map((session) => Math.round(session.accuracy * 100)),
+    [sessions],
+  );
+  const cpmSeries = useMemo(
+    () =>
+      [...(sessions ?? [])]
+        .reverse()
+        .filter((session) => session.cpm !== null)
+        .map((session) => session.cpm as number),
+    [sessions],
+  );
   const keyStats = useMemo(() => keyAccuracy(attempts), [attempts]);
   const mistakes = useMemo(() => summarizeMistakes(attempts, 8), [attempts]);
 
@@ -148,6 +161,20 @@ export function StatsPage() {
                 <dd>{totals.bestCpm ?? "—"}</dd>
               </div>
             </dl>
+          </section>
+
+          <section className="panel" aria-labelledby="trend-title">
+            <div className="panel-heading">
+              <div>
+                <p className="eyebrow">趋势</p>
+                <h2 id="trend-title">最近会话</h2>
+              </div>
+              <p className="panel-note">按时间从左到右；CPM 只来自速度挑战，没有记录时留空。</p>
+            </div>
+            <div className="spark-grid">
+              <Sparkline label="正确率" values={accuracySeries} unit="%" />
+              <Sparkline label="CPM" values={cpmSeries} />
+            </div>
           </section>
 
           <section className="panel" aria-labelledby="kind-title">

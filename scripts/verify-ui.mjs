@@ -388,6 +388,46 @@ try {
   assert.match(await page.locator(".plan-grid").innerText(), /复习 1 个到期知识点/u);
   check("首页今日计划含到期复习", "计划优先显示复习卡片");
 
+  // 全拼 / 小鹤对比
+  await goto("/compare");
+  await page.getByRole("button", { name: "开始" }).click();
+  await page.locator(".speed-input").fill("清风明月");
+  await page.waitForFunction(
+    () => /剩余\s*(29|28)\s*秒/u.test(document.querySelector(".speed-bar .badge")?.textContent ?? ""),
+    null,
+    { timeout: 5000 },
+  );
+  await page.getByRole("button", { name: "提前结束" }).click();
+  await page.getByRole("heading", { name: "全拼测速" }).waitFor();
+  await page.getByRole("button", { name: "开始" }).click();
+  await page.locator(".speed-input").fill("清风明月");
+  await page.waitForFunction(
+    () => /剩余\s*(29|28)\s*秒/u.test(document.querySelector(".speed-bar .badge")?.textContent ?? ""),
+    null,
+    { timeout: 5000 },
+  );
+  await page.getByRole("button", { name: "提前结束" }).click();
+  await page.locator(".summary-grid").waitFor();
+  const compareResult = await page.locator(".summary-grid").innerText();
+  assert.match(compareResult, /小鹤 CPM/u);
+  assert.match(compareResult, /提升/u);
+  await page.locator('[aria-labelledby="compare-history-title"] .data-table').waitFor();
+  assert.match(await page.locator('[aria-labelledby="compare-history-title"] .data-table').innerText(), /清风明月/u);
+  check("全拼/小鹤对比与保存", compareResult.replace(/\s+/gu, " "));
+  await screenshot("s3-compare.png");
+
+  await page.reload({ waitUntil: "load" });
+  await page.locator('[aria-labelledby="compare-history-title"] .data-table').waitFor();
+  assert.match(await page.locator('[aria-labelledby="compare-history-title"] .data-table').innerText(), /清风明月/u);
+  check("对比历史刷新后保留", "IndexedDB comparisons 表");
+
+  await goto("/stats");
+  await page.locator(".spark").first().waitFor();
+  assert.ok((await page.locator(".spark").count()) >= 1);
+  assert.match(await page.locator('[aria-labelledby="trend-title"]').innerText(), /正确率/u);
+  await screenshot("s3-trend.png");
+  check("趋势图", "正确率折线渲染");
+
   // 404
   await goto("/nope");
   assert.match(await page.locator(".page-title").innerText(), /没有这个页面/u);

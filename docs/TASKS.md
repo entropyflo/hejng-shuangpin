@@ -26,7 +26,9 @@
 | REV-002 | 007 | REV-001 | DONE | WorkBuddy | 计划规则变更需补测 | 今日计划单测与首页断言 | S3 复习提交 |
 | REV-003 | 008 | REV-001 | DONE | WorkBuddy | 热力图目前只统计键位认知题 | 错题汇总单测；热力图跳转断言 | S3 复习提交 |
 | STA-001 | 008, 025 | DAT-001 | DONE | WorkBuddy | CPM 只用于速度挑战，不换算键位练习 | metrics 单测 + 会话 CPM | S3 数据层提交 |
-| STA-002～003 | 008, 026 | STA-001 | TODO | WorkBuddy | 全拼对比与历史图表 | STAT-T02, T03 | — |
+| STA-002 | 008, 026 | STA-001 | DONE | WorkBuddy | 真实输入法对比需人工复测 | 对比流程与保存断言 | S3 对比提交 |
+| STA-003 | 008 | STA-002 | DONE | WorkBuddy | 新指标需补序列测试 | 折线点单测；趋势图断言 | S3 对比提交 |
+| G3 | 006～008, 018, 025, 026 | REV-001～003, STA-001～003 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 按 `TEST_ACCEPTANCE.md` G3 验收 | 需真实一周数据与真实输入法对比 | — |
 | DAT-001 | 015, 029 | G2 | DONE | WorkBuddy | 表结构变更时必须加 Dexie 迁移 | 30 项浏览器断言含 IndexedDB 刷新 | S3 数据层提交 |
 | DAT-002, PWA-001, PKG-001 | 014, 015, 027, 029 | DAT-001 | TODO | WorkBuddy | 备份导入事务、离线安装与发行包 | DATA/PWA/PKG 全组 | — |
 | ORG-001～007 | 032～041 | ENV-003 或获批阻塞设计 | TODO | Codex | S5；接口不可用时保持阻塞 | COORD 全组 | — |
