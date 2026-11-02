@@ -15,7 +15,7 @@ const PreferencesContext = createContext<Preferences | null>(null);
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [motion, setMotionState] = useState(() => readToggle(window.localStorage, MOTION_KEY, true));
-  const [sound, setSoundState] = useState(() => readToggle(window.localStorage, SOUND_KEY, false));
+  const [sound, setSoundState] = useState(() => readToggle(window.localStorage, SOUND_KEY, true));
   const [focus, setFocus] = useState(false);
 
   useEffect(() => {

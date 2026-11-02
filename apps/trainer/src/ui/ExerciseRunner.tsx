@@ -29,7 +29,7 @@ import { createMastery, reviewMastery } from "../data/scheduler";
 import type { Attempt, PracticeSession } from "../data/types";
 import type { FlypyFinal } from "../scheme/flypy";
 import { playFeedback } from "./feedbackSound";
-import { HintKeyboard } from "./HintKeyboard";
+import { MappingKeyboard } from "./MappingKeyboard";
 import { ImePractice } from "./ImePractice";
 import { Link } from "./Link";
 import { SpeedChallenge } from "./SpeedChallenge";
@@ -59,6 +59,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [queue, setQueue] = useState<Exercise[]>(() => [...exercises]);
   const retriedRef = useRef<Set<string>>(new Set());
   const [input, setInput] = useState("");
+  const valueRef = useRef("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [selectedOption, setSelectedOption] = useState<FlypyFinal[] | null>(null);
   const [finished, setFinished] = useState(false);
@@ -66,6 +67,8 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [correctionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [streak, setStreak] = useState(0);
   const [flashKey, setFlashKey] = useState<string | null>(null);
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [pressedCorrect, setPressedCorrect] = useState<boolean | null>(null);
   const [locked, setLocked] = useState(false);
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
   const [summary, setSummary] = useState<PracticeSession | null>(null);
@@ -102,12 +105,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
       const current = queue[Math.min(index, queue.length - 1)];
       if (!current || current.kind === "speed-challenge") return;
 
-      if (event.key === "Enter" && !feedback) {
-        event.preventDefault();
-        submit();
-        return;
-      }
-      if (event.code === "Space" && feedback && !locked) {
+      if ((event.key === "Enter" || event.code === "Space") && feedback && !locked) {
         event.preventDefault();
         next();
       }
@@ -133,11 +131,18 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const showKeyboard = sequence.length > 0 && (shouldShowHint(hintMode, streak) || flashKey !== null);
   const useIme = inputMode === "ime" && exercise.kind === "text-typing";
 
+  function updateValue(next: string) {
+    valueRef.current = next;
+    setInput(next);
+  }
+
   function changeInputMode(mode: InputMode) {
     setInputMode(mode);
     writeInputMode(window.localStorage, mode);
-    setInput("");
+    updateValue("");
     setFeedback(null);
+    setPressedKey(null);
+    setPressedCorrect(null);
     setLocked(false);
   }
 
@@ -204,25 +209,24 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     if (next) setFlashKey(next);
   }
 
-  function submit() {
-    if (exercise.kind === "speed-challenge") return;
+  function submitOption(option: FlypyFinal[]) {
+    if (exercise.kind !== "reverse-recall") return;
+    const correct = sameFinals(option, exercise.expectedReadings);
+    setFeedback({ status: correct ? "correct" : "wrong" });
+    setStreak(correct ? streak + 1 : 0);
+    setLocked(!correct && behavior === "strict");
+    playFeedback(correct ? "correct" : "wrong", sound);
+    recordAttempt(exercise, correct, exercise.expectedReadings.join(" / "), option.join(" / "));
+    if (!correct) scheduleRetry(exercise);
+  }
 
-    if (exercise.kind === "reverse-recall") {
-      if (!selectedOption) return;
-      const correct = sameFinals(selectedOption, exercise.expectedReadings);
-      setFeedback({ status: correct ? "correct" : "wrong" });
-      setStreak(correct ? streak + 1 : 0);
-      setLocked(!correct && behavior === "strict");
-      playFeedback(correct ? "correct" : "wrong", sound);
-      recordAttempt(exercise, correct, exercise.expectedReadings.join(" / "), selectedOption.join(" / "));
-      if (!correct) scheduleRetry(exercise);
-      return;
-    }
+  function submit(value = input) {
+    if (exercise.kind === "speed-challenge" || exercise.kind === "reverse-recall") return;
 
-    const result = checkExerciseAnswer(exercise, input);
+    const result = checkExerciseAnswer(exercise, value);
     setFeedback({ status: result.correct ? "correct" : "wrong" });
     playFeedback(result.correct ? "correct" : "wrong", sound);
-    recordAttempt(exercise, result.correct, result.expected, normalizeCodeInput(input));
+    recordAttempt(exercise, result.correct, result.expected, normalizeCodeInput(value));
 
     if (result.correct) {
       setStreak(streak + 1);
@@ -235,7 +239,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     scheduleRetry(exercise);
     if (behavior === "strict") {
       setLocked(true);
-      setInput("");
+      updateValue("");
     }
   }
 
@@ -247,19 +251,23 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
       return;
     }
     setIndex(index + 1);
-    setInput("");
+    updateValue("");
     setFeedback(null);
     setSelectedOption(null);
     setFlashKey(null);
+    setPressedKey(null);
+    setPressedCorrect(null);
     setLocked(false);
   }
 
   function restart() {
     setIndex(0);
-    setInput("");
+    updateValue("");
     setFeedback(null);
     setSelectedOption(null);
     setFlashKey(null);
+    setPressedKey(null);
+    setPressedCorrect(null);
     setLocked(false);
     setStreak(0);
     setFinished(false);
@@ -274,17 +282,25 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
     cpmRef.current = null;
   }
 
+  function handleChange(value: string) {
+    const next = value.toLowerCase().replace(/[^a-z]/gu, "").slice(0, maxLength);
+    updateValue(next);
+    setFeedback(null);
+    if (next.length === maxLength) submit(next);
+  }
+
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      submit();
-      return;
-    }
     const match = /^Key([A-Z])$/u.exec(event.code);
     if (!match) return;
     event.preventDefault();
-    setInput((current) => (current + match[1].toLowerCase()).slice(0, maxLength));
+    const letter = match[1].toLowerCase();
+    const current = valueRef.current;
+    const next = (current + letter).slice(0, maxLength);
+    setPressedKey(letter);
+    setPressedCorrect(sequence[current.length] === letter);
+    updateValue(next);
     setFeedback(null);
+    if (next.length === maxLength) submit(next);
   }
 
   if (finished) {
@@ -377,17 +393,13 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
                   onClick={() => {
                     setSelectedOption(option);
                     setFeedback(null);
+                    submitOption(option);
                   }}
                 >
                   {option.join(" / ")}
                 </button>
               );
             })}
-          </div>
-          <div className="speed-actions">
-            <button type="button" className="primary" onClick={submit} disabled={!selectedOption}>
-              检查
-            </button>
           </div>
         </>
       ) : useIme ? (
@@ -399,10 +411,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
               ref={inputRef}
               className="answer-input"
               value={input}
-              onChange={(event) => {
-                setInput(event.target.value.toLowerCase().replace(/[^a-z]/gu, "").slice(0, maxLength));
-                setFeedback(null);
-              }}
+              onChange={(event) => handleChange(event.target.value)}
               onKeyDown={handleKeyDown}
               maxLength={maxLength}
               placeholder={exercise.kind === "key-recognition" ? "按一个字母键" : "输入双拼码，例如 ul"}
@@ -410,16 +419,15 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
               autoComplete="off"
               spellCheck={false}
             />
-            <button type="button" className="primary" onClick={submit}>
-              检查
-            </button>
           </div>
 
-          <p className="muted small keyboard-hint">回车确认 · 空格进入下一题</p>
+          <p className="muted small keyboard-hint">按下即判定 · 回车或空格进入下一题</p>
 
-          {showKeyboard ? (
-            <HintKeyboard sequence={sequence} progress={input.length} flashKey={flashKey} />
-          ) : null}
+          <MappingKeyboard
+            pressedKey={pressedKey}
+            pressedCorrect={pressedCorrect}
+            nextKey={showKeyboard ? (sequence[input.length] ?? null) : null}
+          />
         </>
       )}
 

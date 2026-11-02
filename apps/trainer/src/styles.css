@@ -450,49 +450,48 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .speed-result dt { color: var(--accent); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .speed-result dd { margin: 4px 0 0; font-size: 1.1rem; font-weight: 700; }
 
-/* ---------- hint keyboard ---------- */
+/* ---------- mapping keyboard ---------- */
 
-.hint-keyboard {
+.hint-row { display: flex; gap: 6px; }
+.hint-row-9 { padding-left: 14px; }
+.hint-row-7 { padding-left: 42px; }
+
+.mapping-keyboard {
   width: fit-content;
   max-width: 100%;
   margin: 16px auto 0;
-  padding: 12px;
+  padding: 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface-sunken);
   overflow-x: auto;
 }
-.hint-row { display: flex; gap: 6px; }
-.hint-row-9 { padding-left: 14px; }
-.hint-row-7 { padding-left: 42px; }
-.hint-key {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
+.mk-row { display: flex; gap: 6px; }
+.mk-row-9 { padding-left: 18px; }
+.mk-row-7 { padding-left: 54px; }
+.mk-key {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 64px;
+  height: 64px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 9px;
   background: var(--surface);
-  color: var(--text-soft);
-  font-size: 0.78rem;
-  font-weight: 700;
+  color: var(--text);
 }
-.hint-key.is-next {
-  border-color: var(--brand);
-  background: var(--brand);
-  color: var(--brand-contrast);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
-}
-.hint-key.is-flash {
-  border-color: var(--accent);
-  background: var(--accent-soft);
-  color: var(--accent-contrast);
-  animation: key-flash 0.35s ease 2;
-}
-@keyframes key-flash {
-  50% { transform: scale(1.12); }
-}
+.mk-letter { font-size: 0.82rem; font-weight: 800; line-height: 1.1; }
+.mk-initial { min-height: 0.9em; color: var(--accent); font-size: 0.58rem; line-height: 1.1; }
+.mk-final { min-height: 0.9em; color: var(--text-soft); font-size: 0.58rem; line-height: 1.1; }
+.mk-key.is-next { border-color: var(--accent); border-style: dashed; }
+.mk-key.is-correct { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-text); }
+.mk-key.is-wrong { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad-text); }
+.mk-key.is-correct .mk-initial,
+.mk-key.is-correct .mk-final,
+.mk-key.is-wrong .mk-initial,
+.mk-key.is-wrong .mk-final { color: inherit; opacity: 0.85; }
 
 /* ---------- readings ---------- */
 
@@ -635,7 +634,6 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .shortcut-list dt { min-width: 96px; }
 .shortcut-list dd { margin: 0; color: var(--text-soft); font-size: 0.92rem; }
 
-.hint-key { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 46px; }
 [data-motion="off"] *,
 [data-motion="off"] *::before,
 [data-motion="off"] *::after {
@@ -745,4 +743,10 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .field-wide { max-width: 100%; }
 
 .keyboard-hint { margin: 10px 0 0; }
-.hint-key { height: 42px; }
+
+/* ---------- centered exercise flow ---------- */
+
+.exercise-card h3 { text-align: center; }
+.answer-row { justify-content: center; }
+.answer-input { flex: 0 1 380px; text-align: center; }
+.keyboard-hint { text-align: center; }

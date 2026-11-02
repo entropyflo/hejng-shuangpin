@@ -48,10 +48,17 @@ try {
   });
   page.on("pageerror", (error) => consoleErrors.push(String(error)));
 
+  async function waitForFocus() {
+    await page.waitForFunction(
+      () => document.activeElement?.classList.contains("answer-input") ?? false,
+      null,
+      { timeout: 5000 },
+    );
+  }
+
   async function answerKey(key) {
-    await page.locator(".answer-input").click();
+    await waitForFocus();
     await page.keyboard.press(key);
-    await page.getByRole("button", { name: "检查" }).click();
   }
 
   async function screenshot(name) {
@@ -88,28 +95,30 @@ try {
   await page.waitForURL("**/lesson/day-1");
   assert.match(await page.locator(".exercise-card h3").first().innerText(), /韵母“a”/u);
 
-  // 键盘提示（自动模式，连对 0 题时显示）
-  assert.equal(await page.locator(".hint-keyboard").count(), 1);
-  assert.equal((await page.locator(".hint-key.is-next").innerText()).trim(), "A");
-  check("屏幕键盘提示", "自动模式首题显示，高亮下一个键 A");
+  // 键位图（自动模式，连对 0 题时显示下一个键提示）
+  assert.equal(await page.locator(".mapping-keyboard").count(), 1);
+  assert.equal((await page.locator(".mk-key.is-next").innerText()).trim().split("\n")[0], "A");
+  check("键位图与下一个键提示", "自动模式首题高亮下一个键 A");
 
   assert.equal(await page.getByText("本课结构").count(), 0);
-  assert.equal(
-    await page.evaluate(() => document.activeElement?.classList.contains("answer-input") ?? false),
-    true,
-  );
+  await waitForFocus();
   check("作答框自动聚焦", "进入课时无需点击输入框");
 
   await page.keyboard.type("a");
-  await page.keyboard.press("Enter");
   await page.locator(".feedback-correct").waitFor();
+  assert.equal(await page.getByRole("button", { name: "检查" }).count(), 0);
+  const pressed = page.locator(".mk-key.is-correct");
+  assert.equal((await pressed.innerText()).includes("A"), true);
+  assert.equal((await pressed.innerText()).split("\n").filter(Boolean).length, 3);
+  check("按下即判定与键位着色", "按 A 后立即判定，键位绿色显示声母/韵母");
+
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.querySelector(".exercise-card h3")?.textContent?.includes("韵母“o”"));
   assert.equal(
     await page.evaluate(() => document.activeElement?.classList.contains("answer-input") ?? false),
     true,
   );
-  check("回车确认与空格切题", "无需鼠标，切题后输入框仍聚焦");
+  check("空格切题", "切题后输入框仍聚焦");
 
   // 浏览器后退
   await page.goBack();
@@ -162,13 +171,13 @@ try {
   await page.getByRole("button", { name: /^始终显示/u }).click();
   await page.getByRole("button", { name: /^严格/u }).click();
   await goto("/lesson/day-1");
-  assert.equal(await page.locator(".hint-keyboard").count(), 1);
+  assert.equal(await page.locator(".mapping-keyboard").count(), 1);
   await answerKey("x");
   await page.locator(".feedback-wrong").waitFor();
   assert.match(await page.locator(".feedback-wrong").innerText(), /严格纠错/u);
   assert.equal(await page.getByRole("button", { name: "下一题" }).isDisabled(), true);
-  await page.locator(".hint-key.is-flash").waitFor({ timeout: 1200 });
-  check("严格纠错锁定与正确键闪烁", "答错后下一题禁用，正确键闪烁");
+  assert.equal((await page.locator(".mk-key.is-wrong").innerText()).includes("X"), true);
+  check("严格纠错与错误键标红", "答错后下一题禁用，X 键红色");
 
   await answerKey("a");
   await page.locator(".feedback-correct").waitFor();
@@ -179,29 +188,32 @@ try {
   await goto("/settings");
   await page.getByRole("button", { name: "隐藏", exact: true }).click();
   await goto("/lesson/day-1");
-  assert.equal(await page.locator(".hint-keyboard").count(), 0);
+  assert.equal(await page.locator(".mk-key.is-next").count(), 0);
   await answerKey("x");
-  await page.locator(".hint-key.is-flash").waitFor({ timeout: 1200 });
-  check("隐藏提示仍闪正确键", "初始无键盘，答错后短暂出现并高亮");
+  await page.locator(".feedback-wrong").waitFor();
+  assert.equal((await page.locator(".mk-key.is-wrong").innerText()).includes("X"), true);
+  check("隐藏提示不显示下一键", "不提示下一个键，答错键仍标红");
 
   // 自动提示：连对 3 题后隐藏
   await goto("/settings");
   await page.getByRole("button", { name: /^自动（连对/u }).click();
   await goto("/lesson/day-1");
   for (const key of ["a", "o", "e"]) {
-    assert.equal(await page.locator(".hint-keyboard").count(), 1);
+    assert.equal(await page.locator(".mk-key.is-next").count(), 1);
     await answerKey(key);
     await page.locator(".feedback-correct").waitFor();
     await page.getByRole("button", { name: "下一题" }).click();
   }
-  assert.equal(await page.locator(".hint-keyboard").count(), 0);
-  check("自动提示连对后隐藏", "连对 3 题后第 4 题不再显示键盘");
+  assert.equal(await page.locator(".mk-key.is-next").count(), 0);
+  assert.equal(await page.locator(".mapping-keyboard").count(), 1);
+  check("自动提示连对后隐藏", "连对 3 题后不再高亮下一个键，键位图仍在");
 
   // 连续纠错：答错不阻塞
   await goto("/settings");
   await page.getByRole("button", { name: /^连续/u }).click();
   await goto("/lesson/day-6");
-  await answerKey("x");
+  await waitForFocus();
+  await page.keyboard.type("xxxx");
   await page.locator(".feedback-wrong").waitFor();
   assert.equal(await page.getByRole("button", { name: "下一题" }).isDisabled(), false);
   check("连续纠错不阻塞", "词句题答错后仍可进入下一题");
@@ -335,7 +347,6 @@ try {
     await page.getByRole("button", { name: "下一题" }).click();
   }
   await page.locator(".option").filter({ hasText: /^a$/u }).click();
-  await page.getByRole("button", { name: "检查" }).click();
   await page.locator(".feedback-correct").waitFor();
   await page.getByRole("button", { name: "下一题" }).click();
   await page.locator(".summary-grid").waitFor();

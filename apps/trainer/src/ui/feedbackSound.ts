@@ -11,17 +11,23 @@ export function playFeedback(kind: "correct" | "wrong", enabled: boolean): void 
     void audioContext.resume();
   }
 
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
   const now = audioContext.currentTime;
+  const tones = kind === "correct" ? [660, 880] : [220];
 
-  oscillator.type = "sine";
-  oscillator.frequency.value = kind === "correct" ? 660 : 220;
-  gain.gain.setValueAtTime(0.06, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+  tones.forEach((frequency, index) => {
+    const oscillator = audioContext!.createOscillator();
+    const gain = audioContext!.createGain();
+    const start = now + index * 0.07;
 
-  oscillator.connect(gain);
-  gain.connect(audioContext.destination);
-  oscillator.start(now);
-  oscillator.stop(now + 0.2);
+    oscillator.type = kind === "correct" ? "sine" : "triangle";
+    oscillator.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(0.07, start + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.14);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext!.destination);
+    oscillator.start(start);
+    oscillator.stop(start + 0.16);
+  });
 }

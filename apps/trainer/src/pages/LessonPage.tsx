@@ -66,7 +66,7 @@ export function LessonPage({ lessonId }: { lessonId: string }) {
             <h2 id="practice-title">共 {exercises.length} 题</h2>
           </div>
           <p className="panel-note">
-            按键模式按物理键位识别，按 Enter 可直接检查；输入法模式只判定已提交的汉字。
+            按下字母立即判定；回车或空格进入下一题。输入法模式只判定已提交的汉字。
           </p>
         </div>
         <ExerciseRunner key={lesson.id} exercises={exercises} scope={`lesson:${lesson.id}`} />
