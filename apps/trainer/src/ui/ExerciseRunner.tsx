@@ -6,6 +6,7 @@ import {
   readCorrectionMode,
   readHintMode,
   readInputMode,
+  readMappingMode,
   resolveCorrection,
   shouldShowHint,
   writeInputMode,
@@ -71,6 +72,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
   const [pressedCorrect, setPressedCorrect] = useState<boolean | null>(null);
   const [locked, setLocked] = useState(false);
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const [mappingMode] = useState(() => readMappingMode(window.localStorage));
   const [summary, setSummary] = useState<PracticeSession | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const { sound } = usePreferences();
@@ -427,6 +429,7 @@ export function ExerciseRunner({ exercises, scope }: { exercises: Exercise[]; sc
             pressedKey={pressedKey}
             pressedCorrect={pressedCorrect}
             nextKey={showKeyboard ? (sequence[input.length] ?? null) : null}
+            mode={mappingMode}
           />
         </>
       )}

@@ -459,32 +459,32 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .mapping-keyboard {
   width: fit-content;
   max-width: 100%;
-  margin: 16px auto 0;
-  padding: 14px;
+  margin: 18px auto 0;
+  padding: 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface-sunken);
   overflow-x: auto;
 }
-.mk-row { display: flex; gap: 6px; }
-.mk-row-9 { padding-left: 18px; }
-.mk-row-7 { padding-left: 54px; }
+.mk-row { display: flex; gap: 8px; }
+.mk-row-9 { padding-left: 22px; }
+.mk-row-7 { padding-left: 66px; }
 .mk-key {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  width: 64px;
-  height: 64px;
+  gap: 2px;
+  width: 76px;
+  height: 82px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 10px;
   background: var(--surface);
   color: var(--text);
 }
-.mk-letter { font-size: 0.82rem; font-weight: 800; line-height: 1.1; }
-.mk-initial { min-height: 0.9em; color: var(--accent); font-size: 0.58rem; line-height: 1.1; }
-.mk-final { min-height: 0.9em; color: var(--text-soft); font-size: 0.58rem; line-height: 1.1; }
+.mk-letter { font-size: 1.05rem; font-weight: 800; line-height: 1.1; }
+.mk-initial { min-height: 1em; color: var(--accent); font-size: 0.78rem; font-weight: 700; line-height: 1.15; }
+.mk-final { min-height: 1em; color: var(--text); font-size: 0.78rem; font-weight: 700; line-height: 1.15; }
 .mk-key.is-next { border-color: var(--accent); border-style: dashed; }
 .mk-key.is-correct { border-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-text); }
 .mk-key.is-wrong { border-color: var(--bad-line); background: var(--bad-bg); color: var(--bad-text); }

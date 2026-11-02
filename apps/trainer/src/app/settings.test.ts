@@ -4,6 +4,10 @@ import {
   CORRECTION_MODE_KEY,
   HINT_MODE_KEY,
   INPUT_MODE_KEY,
+  MAPPING_MODE_KEY,
+  parseMappingMode,
+  readMappingMode,
+  writeMappingMode,
   MOTION_KEY,
   SOUND_KEY,
   parseCorrectionMode,
@@ -120,5 +124,21 @@ describe("动画与音效开关", () => {
     expect(storage.getItem(MOTION_KEY)).toBe("off");
     expect(readToggle(storage, MOTION_KEY, true)).toBe(false);
     expect(readToggle(storage, SOUND_KEY, false)).toBe(true);
+  });
+});
+
+describe("键位映射显示方式", () => {
+  it("默认始终显示", () => {
+    expect(parseMappingMode(null)).toBe("always");
+    expect(parseMappingMode("on-press")).toBe("on-press");
+    expect(parseMappingMode("unknown")).toBe("always");
+  });
+
+  it("读写 localStorage 键", () => {
+    const storage = memoryStorage();
+    expect(readMappingMode(storage)).toBe("always");
+    writeMappingMode(storage, "on-press");
+    expect(storage.getItem(MAPPING_MODE_KEY)).toBe("on-press");
+    expect(readMappingMode(storage)).toBe("on-press");
   });
 });

@@ -3,11 +3,13 @@ import type { Exercise } from "../curriculum/content";
 
 export type HintMode = "always" | "hidden" | "auto";
 export type InputMode = "key" | "ime";
+export type MappingMode = "always" | "on-press";
 export type CorrectionMode = "auto" | "strict" | "continuous";
 export type CorrectionBehavior = "strict" | "continuous";
 
 export const HINT_MODE_KEY = "xiaohe.hint-mode.v1";
 export const INPUT_MODE_KEY = "xiaohe.input-mode.v1";
+export const MAPPING_MODE_KEY = "xiaohe.mapping-mode.v1";
 export const CORRECTION_MODE_KEY = "xiaohe.correction-mode.v1";
 export const AUTO_HINT_STREAK = 3;
 export const MOTION_KEY = "xiaohe.motion.v1";
@@ -15,6 +17,7 @@ export const SOUND_KEY = "xiaohe.sound.v1";
 
 const HINT_MODES: readonly HintMode[] = ["always", "hidden", "auto"];
 const INPUT_MODES: readonly InputMode[] = ["key", "ime"];
+const MAPPING_MODES: readonly MappingMode[] = ["always", "on-press"];
 const CORRECTION_MODES: readonly CorrectionMode[] = ["auto", "strict", "continuous"];
 
 export function parseHintMode(value: string | null | undefined): HintMode {
@@ -47,6 +50,18 @@ export function writeInputMode(storage: KeyValueStorage, mode: InputMode): void 
   storage.setItem(INPUT_MODE_KEY, mode);
 }
 
+export function parseMappingMode(value: string | null | undefined): MappingMode {
+  return MAPPING_MODES.includes(value as MappingMode) ? (value as MappingMode) : "always";
+}
+
+export function readMappingMode(storage: KeyValueStorage): MappingMode {
+  return parseMappingMode(storage.getItem(MAPPING_MODE_KEY));
+}
+
+export function writeMappingMode(storage: KeyValueStorage, mode: MappingMode): void {
+  storage.setItem(MAPPING_MODE_KEY, mode);
+}
+
 export function parseCorrectionMode(value: string | null | undefined): CorrectionMode {
   return CORRECTION_MODES.includes(value as CorrectionMode) ? (value as CorrectionMode) : "auto";
 }
@@ -69,6 +84,11 @@ export const HINT_LABEL: Record<HintMode, string> = {
   always: "始终显示",
   hidden: "隐藏",
   auto: `自动（连对 ${AUTO_HINT_STREAK} 题后隐藏）`,
+};
+
+export const MAPPING_LABEL: Record<MappingMode, string> = {
+  always: "始终显示",
+  "on-press": "按下后显示（显示后保留）",
 };
 
 export const INPUT_LABEL: Record<InputMode, string> = {

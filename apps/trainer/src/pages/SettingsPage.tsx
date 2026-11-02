@@ -3,15 +3,19 @@ import {
   CORRECTION_LABEL,
   HINT_LABEL,
   INPUT_LABEL,
+  MAPPING_LABEL,
   readCorrectionMode,
   readHintMode,
   readInputMode,
+  readMappingMode,
   writeCorrectionMode,
   writeHintMode,
   writeInputMode,
+  writeMappingMode,
   type CorrectionMode,
   type HintMode,
   type InputMode,
+  type MappingMode,
 } from "../app/settings";
 import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { usePreferences } from "../app/preferences";
@@ -24,12 +28,14 @@ const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 const HINT_OPTIONS: HintMode[] = ["always", "auto", "hidden"];
 const CORRECTION_OPTIONS: CorrectionMode[] = ["auto", "strict", "continuous"];
 const INPUT_OPTIONS: InputMode[] = ["key", "ime"];
+const MAPPING_OPTIONS: MappingMode[] = ["always", "on-press"];
 
 export function SettingsPage() {
   const { preference, resolved, setPreference } = useThemeState();
   const [hintMode, setHintMode] = useState(() => readHintMode(window.localStorage));
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
+  const [mappingMode, setMappingMode] = useState(() => readMappingMode(window.localStorage));
   const [dataMessage, setDataMessage] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -48,6 +54,11 @@ export function SettingsPage() {
   function changeInput(mode: InputMode) {
     setInputMode(mode);
     writeInputMode(window.localStorage, mode);
+  }
+
+  function changeMapping(mode: MappingMode) {
+    setMappingMode(mode);
+    writeMappingMode(window.localStorage, mode);
   }
 
   async function exportBackup() {
@@ -212,6 +223,32 @@ export function SettingsPage() {
           >
             音效：{sound ? "开" : "关"}
           </button>
+        </div>
+      </section>
+
+      <section className="panel" aria-labelledby="mapping-title">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">练习辅助</p>
+            <h2 id="mapping-title">键位映射显示</h2>
+          </div>
+          <p className="panel-note">
+            控制答案框下方键位图的声母与韵母。“按下后显示”会保留已经按过的键，不会再次隐藏。
+          </p>
+        </div>
+
+        <div className="filter-row" role="group" aria-label="键位映射显示">
+          {MAPPING_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={mappingMode === option ? "chip is-active" : "chip"}
+              aria-pressed={mappingMode === option}
+              onClick={() => changeMapping(option)}
+            >
+              {MAPPING_LABEL[option]}
+            </button>
+          ))}
         </div>
       </section>
 

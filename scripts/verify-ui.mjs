@@ -70,6 +70,16 @@ try {
     await page.goto(`${BASE_URL}${pathname}`, { waitUntil: "load" });
   }
 
+  async function readMapping() {
+    return page.locator(".mk-key").evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        letter: node.querySelector(".mk-letter")?.textContent ?? "",
+        initial: node.querySelector(".mk-initial")?.textContent?.trim() ?? "",
+        final: node.querySelector(".mk-final")?.textContent?.trim() ?? "",
+      })),
+    );
+  }
+
   // 首页
   await goto("/home");
   assert.equal(await page.title(), "鹤径 · 小鹤双拼学习器");
@@ -108,9 +118,10 @@ try {
   await page.locator(".feedback-correct").waitFor();
   assert.equal(await page.getByRole("button", { name: "检查" }).count(), 0);
   const pressed = page.locator(".mk-key.is-correct");
-  assert.equal((await pressed.innerText()).includes("A"), true);
-  assert.equal((await pressed.innerText()).split("\n").filter(Boolean).length, 3);
-  check("按下即判定与键位着色", "按 A 后立即判定，键位绿色显示声母/韵母");
+  const pressedText = await pressed.innerText();
+  assert.equal(pressedText.includes("A"), true);
+  assert.equal(pressedText.includes("a"), true);
+  check("按下即判定与键位着色", "按 A 后立即判定，键位绿色显示韵母");
 
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.querySelector(".exercise-card h3")?.textContent?.includes("韵母“o”"));
@@ -125,6 +136,56 @@ try {
   await page.waitForURL("**/home");
   assert.match(await page.locator(".stat-row").innerText(), /第 1 天/u);
   check("浏览器后退与上次学习记录", "返回首页且显示“上次学习 第 1 天”");
+
+  // 键位映射显示方式与字号
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  const alwaysMapping = await readMapping();
+  assert.equal(alwaysMapping.filter((item) => item.initial.length > 0).length, 23);
+  assert.equal(alwaysMapping.filter((item) => item.final.length > 0).length, 26);
+  const mappingFont = await page.locator(".mk-initial").first().evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { size: parseFloat(style.fontSize), weight: Number(style.fontWeight) };
+  });
+  assert.ok(mappingFont.size >= 12);
+  assert.ok(mappingFont.weight >= 700);
+  check("键位映射字号与默认显示", `字号 ${mappingFont.size}px / 字重 ${mappingFont.weight}`);
+
+  await goto("/settings");
+  await page.getByRole("group", { name: "键位映射显示" }).getByRole("button", { name: /按下后显示/u }).click();
+  await goto("/lesson/day-1");
+  await waitForFocus();
+  const hiddenMapping = await readMapping();
+  assert.equal(hiddenMapping.filter((item) => item.initial.length > 0).length, 0);
+  await page.keyboard.press("a");
+  await page.locator(".feedback-correct").waitFor();
+  await page.waitForFunction(() => {
+    const key = [...document.querySelectorAll(".mk-key")].find(
+      (node) => node.querySelector(".mk-letter")?.textContent === "A",
+    );
+    return key?.querySelector(".mk-final")?.textContent?.trim() === "a";
+  });
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => document.querySelector(".exercise-card h3")?.textContent?.includes("韵母“o”"));
+  await page.keyboard.press("o");
+  await page.locator(".feedback-correct").waitFor();
+  await page.waitForFunction(() => {
+    const key = [...document.querySelectorAll(".mk-key")].find(
+      (node) => node.querySelector(".mk-letter")?.textContent === "O",
+    );
+    return key?.querySelector(".mk-final")?.textContent?.trim() === "o uo";
+  });
+  const revealedMapping = await readMapping();
+  const keyA = revealedMapping.find((item) => item.letter === "A");
+  const keyO = revealedMapping.find((item) => item.letter === "O");
+  assert.equal(keyA?.final, "a");
+  assert.equal(keyO?.final, "o uo");
+  assert.equal(revealedMapping.filter((item) => item.final.length > 0).length, 2);
+  check("按下后显示并保留", "A 与 O 的韵母可见，其余仍隐藏");
+
+  await goto("/settings");
+  await page.getByRole("group", { name: "键位映射显示" }).getByRole("button", { name: /始终显示/u }).click();
+
 
   // 课程与键位
   await page.locator(".main-nav").getByRole("link", { name: "课程" }).click();
@@ -168,8 +229,8 @@ try {
 
   // 严格纠错：答错后必须按对才能继续
   await goto("/settings");
-  await page.getByRole("button", { name: /^始终显示/u }).click();
-  await page.getByRole("button", { name: /^严格/u }).click();
+  await page.getByRole("group", { name: "提示方式" }).getByRole("button", { name: /^始终显示/u }).click();
+  await page.getByRole("group", { name: "纠错方式" }).getByRole("button", { name: /^严格/u }).click();
   await goto("/lesson/day-1");
   assert.equal(await page.locator(".mapping-keyboard").count(), 1);
   await answerKey("x");
@@ -186,7 +247,7 @@ try {
 
   // 隐藏提示：答错仍短暂亮键
   await goto("/settings");
-  await page.getByRole("button", { name: "隐藏", exact: true }).click();
+  await page.getByRole("group", { name: "提示方式" }).getByRole("button", { name: "隐藏", exact: true }).click();
   await goto("/lesson/day-1");
   assert.equal(await page.locator(".mk-key.is-next").count(), 0);
   await answerKey("x");
@@ -196,7 +257,7 @@ try {
 
   // 自动提示：连对 3 题后隐藏
   await goto("/settings");
-  await page.getByRole("button", { name: /^自动（连对/u }).click();
+  await page.getByRole("group", { name: "提示方式" }).getByRole("button", { name: /^自动（连对/u }).click();
   await goto("/lesson/day-1");
   for (const key of ["a", "o", "e"]) {
     assert.equal(await page.locator(".mk-key.is-next").count(), 1);
@@ -210,7 +271,7 @@ try {
 
   // 连续纠错：答错不阻塞
   await goto("/settings");
-  await page.getByRole("button", { name: /^连续/u }).click();
+  await page.getByRole("group", { name: "纠错方式" }).getByRole("button", { name: /^连续/u }).click();
   await goto("/lesson/day-6");
   await waitForFocus();
   await page.keyboard.type("xxxx");
