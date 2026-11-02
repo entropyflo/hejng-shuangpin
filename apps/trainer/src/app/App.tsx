@@ -1,6 +1,6 @@
+import { lazy, Suspense } from "react";
 import { useRoute } from "./router";
 import { PreferencesProvider } from "./preferences";
-import { ThemeProvider } from "./theme-context";
 import { ComparePage } from "../pages/ComparePage";
 import { CoursePage } from "../pages/CoursePage";
 import { HomePage } from "../pages/HomePage";
@@ -12,9 +12,10 @@ import { PracticePage } from "../pages/PracticePage";
 import { ReviewPage } from "../pages/ReviewPage";
 import { SettingsPage } from "../pages/SettingsPage";
 import { StatsPage } from "../pages/StatsPage";
-import { TextsPage } from "../pages/TextsPage";
 import { Layout } from "../ui/Layout";
 import { Link } from "../ui/Link";
+
+const TextsPage = lazy(() => import("../pages/TextsPage").then((module) => ({ default: module.TextsPage })));
 
 function NotFoundPage({ path }: { path: string }) {
   return (
@@ -49,7 +50,17 @@ function RoutedApp() {
       {route.name === "stats" ? <StatsPage /> : null}
       {route.name === "compare" ? <ComparePage /> : null}
       {route.name === "settings" ? <SettingsPage /> : null}
-      {route.name === "texts" ? <TextsPage /> : null}
+      {route.name === "texts" ? (
+        <Suspense
+          fallback={
+            <section className="panel">
+              <p className="muted">正在加载离线拼音词典…</p>
+            </section>
+          }
+        >
+          <TextsPage />
+        </Suspense>
+      ) : null}
       {route.name === "mixed" ? <MixedPage /> : null}
       {route.name === "notFound" ? <NotFoundPage path={route.path} /> : null}
     </Layout>
@@ -58,10 +69,8 @@ function RoutedApp() {
 
 export function App() {
   return (
-    <ThemeProvider>
-      <PreferencesProvider>
-        <RoutedApp />
-      </PreferencesProvider>
-    </ThemeProvider>
+    <PreferencesProvider>
+      <RoutedApp />
+    </PreferencesProvider>
   );
 }

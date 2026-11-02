@@ -280,24 +280,20 @@ try {
   assert.equal(await page.locator(".data-table tbody tr").count(), 12);
   check("课程与键位页", "7 天课程；26 键 + 12 个零声母");
 
-  // 主题
+  // 固定浅色主题
   await goto("/settings");
   await page.waitForURL("**/settings");
-  await page.getByRole("button", { name: "深色", exact: true }).click();
-  assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
+  assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
+  assert.equal(await page.locator('[aria-label="主题"]').count(), 0);
+  assert.equal(await page.getByRole("group", { name: "主题选择" }).count(), 0);
   await page.reload({ waitUntil: "load" });
-  assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
-  assert.equal(await page.locator(".theme-select select").inputValue(), "dark");
-  check("深色主题与刷新持久化", "data-theme=dark 且下拉保持深色");
+  assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
+  check("固定浅色主题", "顶栏与设置均无主题选项，刷新后仍为 light");
 
   mkdirSync(EVIDENCE_DIR, { recursive: true });
   await goto("/home");
-  await screenshot("s2-home-dark.png");
-  await goto("/settings");
-  await page.getByRole("button", { name: "浅色", exact: true }).click();
-  await goto("/home");
   await screenshot("s2-home-light.png");
-  check("浅色主题与截图", "s2-home-light.png / s2-home-dark.png");
+  check("Apple 风格浅色截图", "s2-home-light.png");
 
   // 自由训练
   await page.locator(".main-nav").getByRole("link", { name: "练习" }).click();
@@ -623,17 +619,28 @@ try {
   // 自定义文本
   await goto("/texts");
   await page.getByRole("button", { name: "新建文本" }).click();
-  await page.locator(".field input").fill("每日一句");
+  assert.equal(await page.locator(".field input").count(), 0);
   await page.locator("textarea.ime-input").fill("今天练习双拼。");
   await page.getByRole("button", { name: "保存" }).click();
   await page.locator("table.data-table").waitFor();
-  assert.match(await page.locator("table.data-table").innerText(), /每日一句/u);
+  assert.match(await page.locator("table.data-table").innerText(), /今天练习双拼/u);
   await page.getByRole("button", { name: "练习" }).click();
-  await page.locator("section[aria-labelledby=\"practice-title\"] .ime-input").fill("今天练习双拼。");
+  const customInput = page.getByRole("textbox", { name: "双拼逐字输入" });
+  await customInput.pressSequentially("jb");
+  assert.match(await page.locator(".custom-unit.is-correct").first().innerText(), /今\s*j\s*b/u);
+  await customInput.pressSequentially("xx");
+  assert.match(await page.locator(".custom-unit.is-wrong").first().innerText(), /天\s*x\s*x/u);
+  await page.getByRole("switch", { name: "键位提示图" }).click();
+  assert.equal(await page.locator(".mapping-keyboard").count(), 0);
+  await page.getByRole("switch", { name: "键位提示图" }).click();
+  assert.equal(await page.locator(".mapping-keyboard").count(), 1);
+  await customInput.pressSequentially("lmxiulpb");
   await page.locator("section[aria-labelledby=\"practice-title\"] .feedback-correct").first().waitFor();
+  assert.match(await page.locator("section[aria-labelledby=\"practice-title\"] .feedback-correct").first().innerText(), /正确 5 \/ 6 字/u);
+  await screenshot("v2-custom-text-practice.png");
   await goto("/texts");
-  assert.match(await page.locator("table.data-table").innerText(), /每日一句/u);
-  check("自定义文本保存与练习", "保存后刷新仍在，练习完成");
+  assert.match(await page.locator("table.data-table").innerText(), /今天练习双拼/u);
+  check("自定义文本逐字双拼练习", "自动标题；汉字与编码逐字对错；键位提示可开关；刷新后仍在");
 
   // 混合训练加权
   await goto("/mixed");
@@ -688,6 +695,7 @@ try {
   await page.getByRole("button", { name: "确认清空" }).click();
   await page.locator(".muted.small").filter({ hasText: "已清空" }).waitFor();
   await goto("/stats");
+  await page.getByText("还没有数据", { exact: true }).waitFor();
   assert.match(await page.locator(".panel").first().innerText(), /还没有数据/u);
   check("清空本机数据", "统计页回到空状态");
 

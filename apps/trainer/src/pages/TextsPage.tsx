@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import type { CommittedEvaluation } from "../curriculum/ime";
 import { getRepository } from "../data";
 import { newSessionId } from "../data/recorder";
 import type { CustomText } from "../data/types";
-import { MAX_CONTENT_LENGTH, MAX_NAME_LENGTH, previewOf, validateCustomText } from "../texts/model";
-import { ImePractice } from "../ui/ImePractice";
+import { MAX_CONTENT_LENGTH, previewOf, validateCustomText } from "../texts/model";
+import { CustomTextPractice } from "../ui/CustomTextPractice";
 
 const DATE_FORMAT = new Intl.DateTimeFormat("zh-CN", {
   month: "2-digit",
@@ -13,7 +12,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("zh-CN", {
   minute: "2-digit",
 });
 
-type Draft = { id?: string; name: string; content: string; createdAt?: number };
+type Draft = { id?: string; content: string; createdAt?: number };
 
 type Result = { correct: number; total: number; elapsedMs: number };
 
@@ -41,7 +40,7 @@ export function TextsPage() {
 
   async function saveDraft() {
     if (!draft) return;
-    const validated = validateCustomText(draft.name, draft.content);
+    const validated = validateCustomText(draft.content);
     if (!validated.ok) {
       setError(validated.error);
       return;
@@ -87,12 +86,11 @@ export function TextsPage() {
     setResult(null);
   }
 
-  function handleEvaluation(evaluation: CommittedEvaluation) {
+  function handleComplete(evaluation: { correct: number; total: number }) {
     if (!practicing || startedAt === null || result) return;
-    if (!evaluation.done) return;
     setResult({
       correct: evaluation.correct,
-      total: Array.from(practicing.content).length,
+      total: evaluation.total,
       elapsedMs: Date.now() - startedAt,
     });
   }
@@ -103,14 +101,14 @@ export function TextsPage() {
         <p className="eyebrow">自定义文本</p>
         <h1 className="page-title">粘贴自己的句子来练</h1>
         <p className="lede">
-          文本保存在本机 IndexedDB，可命名、编辑、删除。练习使用系统输入法，只按已提交汉字判定；自定义文本不计入星级。
+          文本保存在本机 IndexedDB，标题会从正文自动生成。练习时逐字输入小鹤双拼码，汉字与编码同步反馈。
         </p>
         <div className="actions">
           <button
             type="button"
             className="primary"
             onClick={() => {
-              setDraft({ name: "", content: "" });
+              setDraft({ content: "" });
               setError(null);
             }}
           >
@@ -130,16 +128,6 @@ export function TextsPage() {
             </div>
             <p className="panel-note">只保留汉字与常用标点；拉丁字母和换行会被过滤。</p>
           </div>
-
-          <label className="field">
-            <span>名称</span>
-            <input
-              value={draft.name}
-              maxLength={MAX_NAME_LENGTH}
-              onChange={(event) => setDraft({ ...draft, name: event.target.value })}
-              placeholder="例如：每天一句"
-            />
-          </label>
 
           <label className="field field-wide">
             <span>正文（最多 {MAX_CONTENT_LENGTH} 字）</span>
@@ -169,14 +157,18 @@ export function TextsPage() {
           <div className="panel-heading">
             <div>
               <p className="eyebrow">练习中</p>
-              <h2 id="practice-title">{practicing.name}</h2>
+              <h2 id="practice-title">双拼逐字跟打</h2>
             </div>
             <button type="button" className="secondary" onClick={stopPractice}>
               结束练习
             </button>
           </div>
 
-          <ImePractice key={`${practicing.id}-${attemptKey}`} text={practicing.content} onEvaluation={handleEvaluation} />
+          <CustomTextPractice
+            key={`${practicing.id}-${attemptKey}`}
+            text={practicing.content}
+            onComplete={handleComplete}
+          />
 
           {result ? (
             <div className="feedback feedback-correct">
@@ -220,7 +212,7 @@ export function TextsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th scope="col">名称</th>
+                <th scope="col">自动标题</th>
                 <th scope="col">内容</th>
                 <th scope="col">更新</th>
                 <th scope="col">操作</th>
@@ -243,7 +235,6 @@ export function TextsPage() {
                         onClick={() => {
                           setDraft({
                             id: text.id,
-                            name: text.name,
                             content: text.content,
                             createdAt: text.createdAt,
                           });

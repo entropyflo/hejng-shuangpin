@@ -21,21 +21,17 @@ import {
   type InputMode,
   type MappingMode,
 } from "../app/settings";
-import { THEME_LABEL, type ThemePreference } from "../app/theme";
 import { usePreferences } from "../app/preferences";
 import { createBackup, parseBackup } from "../data/backup";
 import { getRepository } from "../data";
-import { useThemeState } from "../app/theme-context";
 import { ReadingCorrection } from "../ui/ReadingCorrection";
 
-const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 const HINT_OPTIONS: HintMode[] = ["always", "auto", "hidden"];
 const CORRECTION_OPTIONS: CorrectionMode[] = ["auto", "strict", "continuous"];
 const INPUT_OPTIONS: InputMode[] = ["key", "ime"];
 const MAPPING_OPTIONS: MappingMode[] = ["always", "on-press"];
 
 export function SettingsPage() {
-  const { preference, resolved, setPreference } = useThemeState();
   const [hintMode, setHintMode] = useState(() => readHintMode(window.localStorage));
   const [correctionMode, setCorrectionMode] = useState(() => readCorrectionMode(window.localStorage));
   const [inputMode, setInputMode] = useState(() => readInputMode(window.localStorage));
@@ -135,33 +131,9 @@ export function SettingsPage() {
     <>
       <header className="page-head">
         <p className="eyebrow">设置</p>
-        <h1 className="page-title">外观与练习</h1>
-        <p className="lede">主题、提示与多音字修正都保存在本机浏览器，不上传服务器。</p>
+        <h1 className="page-title">练习与数据</h1>
+        <p className="lede">提示方式、练习反馈与多音字修正都保存在本机浏览器，不上传服务器。</p>
       </header>
-
-      <section className="panel" aria-labelledby="theme-title">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">外观</p>
-            <h2 id="theme-title">主题</h2>
-          </div>
-          <p className="panel-note">当前实际显示：{resolved === "dark" ? "深色" : "浅色"}。</p>
-        </div>
-
-        <div className="filter-row" role="group" aria-label="主题选择">
-          {THEME_OPTIONS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={preference === option ? "chip is-active" : "chip"}
-              aria-pressed={preference === option}
-              onClick={() => setPreference(option)}
-            >
-              {THEME_LABEL[option]}
-            </button>
-          ))}
-        </div>
-      </section>
 
       <section className="panel" aria-labelledby="hint-title">
         <div className="panel-heading">

@@ -1,10 +1,10 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
-import { applyTheme, readThemePreference, systemPrefersDark } from "./app/theme";
 import "./styles.css";
 
-applyTheme(readThemePreference(window.localStorage), document.documentElement, systemPrefersDark());
+document.documentElement.dataset.theme = "light";
+document.documentElement.style.colorScheme = "light";
 
 
 const root = document.getElementById("root");

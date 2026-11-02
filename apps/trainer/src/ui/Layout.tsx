@@ -2,12 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { NAV_ITEMS, navigate, useRoute } from "../app/router";
 import { usePreferences } from "../app/preferences";
 import { useServiceWorkerUpdate } from "../app/swUpdate";
-import { THEME_LABEL, type ThemePreference } from "../app/theme";
-import { useThemeState } from "../app/theme-context";
 import { Link } from "./Link";
 import { Icon } from "./Icon";
-
-const THEME_OPTIONS: ThemePreference[] = ["light", "dark", "system"];
 
 const SHORTCUTS = [
   { keys: "?", action: "打开或关闭本帮助" },
@@ -29,7 +25,6 @@ function isTypingTarget(target: EventTarget | null): boolean {
 
 export function Layout({ children }: { children: ReactNode }) {
   const route = useRoute();
-  const { preference, setPreference } = useThemeState();
   const { focus, setFocus, toggleFocus } = usePreferences();
   const [helpOpen, setHelpOpen] = useState(false);
   const { updateReady, reload } = useServiceWorkerUpdate();
@@ -116,20 +111,6 @@ export function Layout({ children }: { children: ReactNode }) {
           <Link to="/settings" className="ghost-button" aria-label="设置" title="设置">
             <Icon name="settings" />
           </Link>
-          <label className="theme-select">
-            <span className="visually-hidden">主题</span>
-            <select
-              value={preference}
-              onChange={(event) => setPreference(event.target.value as ThemePreference)}
-              aria-label="主题"
-            >
-              {THEME_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {THEME_LABEL[option]}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
       </header>
 

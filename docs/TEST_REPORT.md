@@ -464,3 +464,18 @@ Git 基线：`7d1aa98`（本次提交前）
 | 功能回归 | PASS | 197 单测；完整 Chromium 回归；typecheck/build 退出码 0 |
 
 已知提示：生产构建的主 JavaScript 约 524 kB，Vite 提示可做代码分包；当前不影响离线与验收，本轮未为视觉改版引入路由加载改造。
+
+## V2.1 固定浅色与自定义文本跟打（2026-11-03）
+
+| 项目 | 结果 | 证据 |
+|---|---|---|
+| 固定浅色主题 | PASS | 顶栏无主题下拉、设置无主题分组；刷新后 `data-theme=light` |
+| Apple 式视觉层级 | PASS | `#1d1d1f` / `#f5f5f7` / `#0071e3` 设计令牌；`docs/evidence/s2-home-light.png` |
+| 移除文本名称输入 | PASS | 新建表单只有正文输入；标题从正文自动生成 |
+| 离线上下文读音 | PASS | `银行行走 → yb hh xk zz` 单测；`pinyin-pro@3.29.5` MIT 许可 |
+| 逐字双拼状态 | PASS | `今/jb` 正确加粗、`天/xx` 错误红色；其余字符与编码逐字对齐 |
+| 键位提示图开关 | PASS | `role=switch` 关闭后键位图数量为 0，再开启恢复为 1 |
+| 自定义文本视觉证据 | PASS | `docs/evidence/v2-custom-text-practice.png` |
+| 完整回归 | PASS | 20 文件 / 197 单测；56 项 Chromium 检查；typecheck/build 退出码 0；控制台 0 error |
+
+自定义文本页已按需拆包：主包约 517 kB，词典与页面约 297 kB；两个脚本均进入 Service Worker 预缓存，离线练习不依赖网络。

@@ -13,7 +13,7 @@ const ENTRIES = [
   { to: "/keyboard", title: "键位映射", body: "26 个字母键、共享韵母与十二个零声母。" },
   { to: "/stats", title: "学习统计", body: "总览、错题、键位热力图与趋势。" },
   { to: "/texts", title: "自定义文本", body: "粘贴自己的句子，用系统输入法练习。" },
-  { to: "/settings", title: "设置与修正", body: "切换主题，修改多音字读音并保存在本机。" },
+  { to: "/settings", title: "设置与修正", body: "调整练习反馈，修改多音字读音并保存在本机。" },
 ];
 
 export function HomePage() {
