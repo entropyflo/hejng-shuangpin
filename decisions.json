@@ -1,0 +1,258 @@
+{
+  "spec_version": "1.0",
+  "date": "2026-11-02",
+  "decisions": [
+    {
+      "id": "LEARN-001",
+      "title": "七天入门 + 长期强化训练",
+      "requirement": "七天学习路径与不限期的易错键、词句、速度强化并存。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-002",
+      "title": "全部自由开放",
+      "requirement": "关卡无时间/分数门槛；可跳关、重复练习、进入高级模块。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-003",
+      "title": "智能提示 + 手动切换",
+      "requirement": "根据熟练度逐渐弱化键位提示，用户手动覆盖自动策略。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-004",
+      "title": "按键编码与真实输入法双模式",
+      "requirement": "前者判定物理键与双拼码，后者判定 IME 已提交汉字；数据分开记录。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-005",
+      "title": "四题型与智能混合",
+      "requirement": "键位认知、反向记忆、组合拼读、速度挑战；按薄弱程度动态混合。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-006",
+      "title": "即时纠错与间隔重复",
+      "requirement": "错误立即反馈、当轮重现、后续按复习到期与反应表现安排。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-007",
+      "title": "智能每日计划 + 自由训练",
+      "requirement": "到期复习、新知识、混合训练推荐，允许跳过或自定时长。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-008",
+      "title": "详细学习数据 + 热力图",
+      "requirement": "成绩曲线、易错项、时长、键盘掌握度、热力图直达专项练习。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-009",
+      "title": "内置分层题库 + 自定义文本",
+      "requirement": "音节到段落分层，粘贴自定义文本离线生成练习。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-010",
+      "title": "游戏化首页 + 专注练习",
+      "requirement": "首页关卡化，练习界面简洁，适度动画反馈。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-011",
+      "title": "综合首页 + 独立模块",
+      "requirement": "今日计划与七天关卡并列，训练、统计、热力图独立入口。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-012",
+      "title": "自适应布局 + 沉浸专注",
+      "requirement": "桌面宽屏优先，可隐藏辅助项，保留并恢复显示设置。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-013",
+      "title": "训练类型决定纠错方式",
+      "requirement": "入门严格纠错，连打/测速连续输入，可手动切换；IME 提交后才判断。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-014",
+      "title": "可安装离线 PWA",
+      "requirement": "预缓存资源，localhost/HTTPS 初始化安装，之后断网可用。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-015",
+      "title": "本地存储 + 备份恢复 + 提醒",
+      "requirement": "IndexedDB 自动保存；导出导入、完整性检查、定期备份提醒。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-016",
+      "title": "自适应音效动画",
+      "requirement": "入门反馈丰富，速度训练弱化；音效与动画独立设置。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-017",
+      "title": "交互式导学",
+      "requirement": "讲解、演示、按键实操、反馈、小测验；已掌握可跳过。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-018",
+      "title": "星级 + 独立速度成绩",
+      "requirement": "以正确率评级，另记反应时、速度与最佳成绩；不用于锁关。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-019",
+      "title": "训练题量与时长自适应",
+      "requirement": "按练习类型推荐题量、时间，允许修改、暂停、提前结束。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-020",
+      "title": "仅桌面电脑重点适配",
+      "requirement": "macOS/Windows + 实体键盘；不重点开发移动端专用训练。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-021",
+      "title": "交互键位图与智能辅助",
+      "requirement": "完整键位映射、示例、指法提示、隐藏映射、自测、弱项入口。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-022",
+      "title": "离线多音字识别可纠正",
+      "requirement": "上下文词典识别、歧义提示、手动修改与保存。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-023",
+      "title": "可选标准指法辅助",
+      "requirement": "十指分区、推荐手指展示，可关闭、不强制开指法课。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-024",
+      "title": "完整键盘优先交互",
+      "requirement": "课程选择、练习、结算、快捷键帮助均可键盘操作。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-025",
+      "title": "中文输入速度 CPM 为主",
+      "requirement": "准确输入的汉字/分钟是核心指标；不将纯键位练习硬换算 CPM。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-026",
+      "title": "全拼/小鹤双拼测速对比",
+      "requirement": "同文本同规则，分别记录 CPM 历史、提升比；输入法类型由用户选择。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-027",
+      "title": "完整源代码 + 一键启动包",
+      "requirement": "Mac/Windows 离线发行包、PWA 安装流程、开发源码和构建测试文档。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-028",
+      "title": "浅色/深色/跟随系统",
+      "requirement": "三种主题，全模块统一，保存偏好。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-029",
+      "title": "本地单用户",
+      "requirement": "无账号登录，支持备份、清空与重置（危险操作二次确认）。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-030",
+      "title": "简体中文界面",
+      "requirement": "首版只提供简体中文，内部可保留可扩展设计。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-031",
+      "title": "自动化 + 实机验收",
+      "requirement": "规则、IME、PWA、数据、跨平台自动测试和实机测试，报告分级。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-032",
+      "title": "分阶段自主开发 + 关键节点验收",
+      "requirement": "常规工作 Agent 自主推进，里程碑人工批准、Git 留痕。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-033",
+      "title": "可运行版本 + 报告 + 人工验收",
+      "requirement": "关键节点同时交付可运行版本、测试结果、缺陷清单并获得批准。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-034",
+      "title": "Codex 主 / WorkBuddy International 备",
+      "requirement": "共享 Git 与文档，检查点接力，不能误写为 ChatGPT Work。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-035",
+      "title": "Codex 额度耗尽全自动接力",
+      "requirement": "已验证的接口检测配额耗尽后，自动调用 WorkBuddy 接力；安全单写者。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-036",
+      "title": "技术优化自主、重大变更需批",
+      "requirement": "修复/重构可自主；重大架构/数据损坏/删功能需批准。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-037",
+      "title": "网页 + CLI 双重管理",
+      "requirement": "本地仪表盘和命令行双入口，真实状态、日志、暂停/恢复/审核。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-038",
+      "title": "手动启动、后台常驻、重启恢复",
+      "requirement": "用户先启动；后台任务持久化、系统重启恢复；暂停的任务不恢复。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-039",
+      "title": "智能故障分类 + 有限恢复",
+      "requirement": "网络重试、额度接力、测试修复；严重风险和双代理不可用暂停。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-040",
+      "title": "只用现有订阅额度",
+      "requirement": "禁止未经批准的加购、付费 API、额外服务支出。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-041",
+      "title": "项目 + 必要环境最小权限",
+      "requirement": "限制文件访问，禁止未批系统级变更、越权、操作其他项目。",
+      "confirmed": true
+    },
+    {
+      "id": "LEARN-042",
+      "title": "完整工程交付包",
+      "requirement": "需求、架构、两类提示词、协调器、开发计划、测试清单、决策索引。",
+      "confirmed": true
+    }
+  ]
+}
