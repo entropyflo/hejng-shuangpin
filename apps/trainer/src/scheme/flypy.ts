@@ -15,7 +15,7 @@ export type EncodeResult = {
 };
 
 export type FlypyEncodingErrorCode =
-  | "ZERO_INITIAL_NOT_IMPLEMENTED"
+  | "UNSUPPORTED_ZERO_INITIAL"
   | "UNSUPPORTED_INITIAL"
   | "UNSUPPORTED_FINAL";
 
@@ -103,6 +103,21 @@ export const FLYPY_FINAL_KEYS = {
   ian: "m",
 } as const;
 
+export const FLYPY_ZERO_INITIAL_CODES = {
+  a: "aa",
+  o: "oo",
+  e: "ee",
+  ai: "ai",
+  ei: "ei",
+  ao: "ao",
+  ou: "ou",
+  an: "an",
+  en: "en",
+  er: "er",
+  ang: "ah",
+  eng: "eg",
+} as const;
+
 export const FLYPY_SCHEME_SOURCES = [
   {
     id: "flypy-official-home",
@@ -134,15 +149,73 @@ function hasOwn<T extends object>(value: T, key: PropertyKey): key is keyof T {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 
+const PINYIN_CHAR_NORMALIZATION: Record<string, string> = {
+  ā: "a",
+  á: "a",
+  ǎ: "a",
+  à: "a",
+  ē: "e",
+  é: "e",
+  ě: "e",
+  è: "e",
+  ī: "i",
+  í: "i",
+  ǐ: "i",
+  ì: "i",
+  ō: "o",
+  ó: "o",
+  ǒ: "o",
+  ò: "o",
+  ū: "u",
+  ú: "u",
+  ǔ: "u",
+  ù: "u",
+  ǖ: "ü",
+  ǘ: "ü",
+  ǚ: "ü",
+  ǜ: "ü",
+  v: "ü",
+};
+
+export function normalizePinyinPart(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/u:/g, "ü")
+    .replace(/[1-5]$/u, "")
+    .replace(/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜv]/gu, (character) => PINYIN_CHAR_NORMALIZATION[character]);
+}
+
+export function normalizeFlypyFinal(initial: string, value: string): string {
+  let final = normalizePinyinPart(value);
+
+  if (["j", "q", "x", "y"].includes(initial) && final.startsWith("u")) {
+    final = `ü${final.slice(1)}`;
+  }
+
+  if (final === "iou") return "iu";
+  if (final === "uei") return "ui";
+  if (final === "uen") return "un";
+
+  return final;
+}
+
 export function encodeSyllable(syllable: Syllable): EncodeResult {
-  const initial = syllable.initial.toLowerCase();
-  const final = syllable.final.toLowerCase();
+  const initial = normalizePinyinPart(syllable.initial);
+  const final = normalizeFlypyFinal(initial, syllable.final);
+  const normalizedPinyin = `${initial}${final}`;
 
   if (initial === "") {
-    throw new FlypyEncodingError(
-      "ZERO_INITIAL_NOT_IMPLEMENTED",
-      "零声母规则由 SCH-002 实现；SCH-001 不猜测编码。",
-    );
+    if (!hasOwn(FLYPY_ZERO_INITIAL_CODES, final)) {
+      throw new FlypyEncodingError("UNSUPPORTED_ZERO_INITIAL", `不支持的零声母音节：${final}`);
+    }
+
+    return {
+      code: FLYPY_ZERO_INITIAL_CODES[final],
+      normalizedPinyin: final,
+      ruleId: `flypy.zero-initial.${final}`,
+      warnings: [],
+    };
   }
 
   if (!hasOwn(FLYPY_INITIAL_KEYS, initial)) {
@@ -155,7 +228,7 @@ export function encodeSyllable(syllable: Syllable): EncodeResult {
 
   return {
     code: `${FLYPY_INITIAL_KEYS[initial]}${FLYPY_FINAL_KEYS[final]}`,
-    normalizedPinyin: syllable.normalizedPinyin,
+    normalizedPinyin,
     ruleId: `flypy.initial.${initial}+final.${final}`,
     warnings: [],
   };

@@ -52,3 +52,16 @@ Git 基线：`e72fa38`
 | 自动化回归 | PASS | `npm run typecheck` exit 0；`npm test` 2 文件/12 测试 PASS；`npm run build` exit 0 |
 
 SCH-001 不包含零声母与完整拼音正规化；这些项目保持 `NOT_RUN` 并进入 SCH-002。
+
+## S1 / SCH-002 增量
+
+执行日期：2026-11-02（Asia/Shanghai）
+
+| 测试 | 结果 | 证据 |
+|---|---|---|
+| SCH-T02 十二个零声母 | PASS | `a/o/e` 重复、七个双字母保持全拼、`ang→ah`、`eng→eg`；带调样例覆盖 |
+| `ü/v/u:` 正规化 | PASS | `nǚ→nv`、`lve→lt`，声调符号和尾部声调数字被规范移除 |
+| `j/q/x/y` 拼写规则 | PASS | `ju→jv`、`que→qt`、`xuan→xr`、`yun→yy`，内部显式保留 `ü` |
+| 完整韵母拼写 | PASS | `iou/uei/uen→iu/ui/un` |
+| 非法零声母 | PASS | 非十二项输入抛 `UNSUPPORTED_ZERO_INITIAL` |
+| 自动化回归 | PASS | `npm test` 2 文件/42 测试 PASS；此前同一变更的 typecheck/build 均 exit 0 |

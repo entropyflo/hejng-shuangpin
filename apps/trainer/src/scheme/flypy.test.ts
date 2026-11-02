@@ -5,7 +5,10 @@ import {
   FLYPY_INITIAL_KEYS,
   FLYPY_SCHEME_SOURCES,
   FLYPY_SPECIAL_INITIAL_KEYS,
+  FLYPY_ZERO_INITIAL_CODES,
   FlypyEncodingError,
+  normalizeFlypyFinal,
+  normalizePinyinPart,
 } from "./flypy";
 
 describe("小鹤双拼键位金样", () => {
@@ -103,12 +106,6 @@ describe("小鹤双拼键位金样", () => {
     });
   });
 
-  it("在 SCH-002 前明确拒绝零声母，不伪造规则", () => {
-    expect(() => encodeSyllable({ initial: "", final: "ang", normalizedPinyin: "ang" })).toThrowError(
-      expect.objectContaining<Partial<FlypyEncodingError>>({ code: "ZERO_INITIAL_NOT_IMPLEMENTED" }),
-    );
-  });
-
   it("拒绝未知声母和韵母", () => {
     expect(() => encodeSyllable({ initial: "xx", final: "ang", normalizedPinyin: "xxang" })).toThrowError(
       expect.objectContaining<Partial<FlypyEncodingError>>({ code: "UNSUPPORTED_INITIAL" }),
@@ -125,6 +122,86 @@ describe("小鹤双拼键位金样", () => {
       expect.objectContaining({ id: "rime-double-pinyin-flypy", role: "implementation-cross-check" }),
       expect.objectContaining({ id: "apple-shuangpin-layouts", role: "platform-cross-check" }),
     ]);
+  });
+});
+
+describe("SCH-002 零声母与拼音正规化", () => {
+  it("完整锁定十二个官方零声母音节", () => {
+    expect(FLYPY_ZERO_INITIAL_CODES).toEqual({
+      a: "aa",
+      o: "oo",
+      e: "ee",
+      ai: "ai",
+      ei: "ei",
+      ao: "ao",
+      ou: "ou",
+      an: "an",
+      en: "en",
+      er: "er",
+      ang: "ah",
+      eng: "eg",
+    });
+  });
+
+  it.each(Object.entries(FLYPY_ZERO_INITIAL_CODES))("编码零声母 %s→%s", (final, code) => {
+    expect(encodeSyllable({ initial: "", final, normalizedPinyin: final })).toEqual({
+      code,
+      normalizedPinyin: final,
+      ruleId: `flypy.zero-initial.${final}`,
+      warnings: [],
+    });
+  });
+
+  it.each([
+    ["ǎng", "ah", "ang"],
+    ["è", "ee", "e"],
+    ["ér2", "er", "er"],
+  ])("编码带声调的零声母 %s", (final, code, normalizedPinyin) => {
+    expect(encodeSyllable({ initial: "", final, normalizedPinyin: final })).toMatchObject({
+      code,
+      normalizedPinyin,
+    });
+  });
+
+  it("移除声调符号、尾部声调数字并统一 v/u: 为 ü", () => {
+    expect(normalizePinyinPart(" Nǚ3 ")).toBe("nü");
+    expect(normalizePinyinPart("lü4")).toBe("lü");
+    expect(normalizePinyinPart("u:")).toBe("ü");
+    expect(normalizePinyinPart("v")).toBe("ü");
+  });
+
+  it.each([
+    ["j", "u", "ü"],
+    ["q", "ue", "üe"],
+    ["x", "uan", "üan"],
+    ["y", "un", "ün"],
+    ["n", "ǚ", "ü"],
+    ["l", "ve", "üe"],
+  ])("正规化 %s + %s 的 ü 规则", (initial, final, expected) => {
+    expect(normalizeFlypyFinal(initial, final)).toBe(expected);
+  });
+
+  it.each([
+    [{ initial: "j", final: "u", normalizedPinyin: "ju" }, "jv", "jü"],
+    [{ initial: "q", final: "ue", normalizedPinyin: "que" }, "qt", "qüe"],
+    [{ initial: "x", final: "uan", normalizedPinyin: "xuan" }, "xr", "xüan"],
+    [{ initial: "y", final: "un", normalizedPinyin: "yun" }, "yy", "yün"],
+    [{ initial: "n", final: "ǚ", normalizedPinyin: "nǚ" }, "nv", "nü"],
+    [{ initial: "l", final: "ve", normalizedPinyin: "lve" }, "lt", "lüe"],
+  ])("编码 ü 音节 %#", (syllable, code, normalizedPinyin) => {
+    expect(encodeSyllable(syllable)).toMatchObject({ code, normalizedPinyin });
+  });
+
+  it("正规化 iou/uei/uen 的完整拼写", () => {
+    expect(normalizeFlypyFinal("l", "iou")).toBe("iu");
+    expect(normalizeFlypyFinal("g", "uei")).toBe("ui");
+    expect(normalizeFlypyFinal("d", "uen")).toBe("un");
+  });
+
+  it("未知零声母音节显式失败", () => {
+    expect(() => encodeSyllable({ initial: "", final: "ong", normalizedPinyin: "ong" })).toThrowError(
+      expect.objectContaining<Partial<FlypyEncodingError>>({ code: "UNSUPPORTED_ZERO_INITIAL" }),
+    );
   });
 });
 
