@@ -11,9 +11,13 @@
     "build": "npm run build --workspace @xiaohe/trainer",
     "dev": "npm run dev --workspace @xiaohe/trainer",
     "test": "npm run test --workspace @xiaohe/trainer",
-    "typecheck": "npm run typecheck --workspace @xiaohe/trainer"
+    "typecheck": "npm run typecheck --workspace @xiaohe/trainer",
+    "verify:ui": "node scripts/verify-s1-ui.mjs"
   },
   "engines": {
     "node": ">=22.12"
+  },
+  "devDependencies": {
+    "playwright-core": "1.64.1"
   }
 }

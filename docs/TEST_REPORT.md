@@ -89,9 +89,32 @@ Git 基线：`7d1aa98`（本次提交前）
 |---|---|---|
 | CUR-T01 七天课程结构 | PASS | 7 天全部 `locked: false`；每天固定“导学/演示/实操/小测/混合”五步；七天合计覆盖五种题型 |
 | CUR-T02 分层原创题库 | PASS | 单字 12、双字词 8、多字词 5、短句 4、段落 1、速度 3；每题含读音、双拼码、解释、错误提示与知识点 |
-| CUR-T02b 键位与零声母覆盖 | PASS | 23 个声母、35 个展示韵母、12 个零声母均有例题；26 个字母键全部出现 |
+| CUR-T02b 键位与零声母覆盖 | PASS | 23 个声母、34 个展示韵母、12 个零声母均有例题；26 个字母键全部出现 |
 | CUR-T03 一致性筛查 | PASS | `inspectCurriculum` 对正常题库返回空数组；注入重复 ID、错码、缺题、读音数量不符、未知读音、未知知识点、重复文本、非法字符、未覆盖知识点共 9 类坏题均被识别 |
 | CUR-T04 题库 JSON Schema | PASS | `z.toJSONSchema` 导出 draft-2020-12，含 `contentVersion`/`text-typing`，可 JSON 序列化 |
 | CUR-T05 全量回归 | PASS | `npm run typecheck` exit 0；`npm test` 4 文件/75 测试 PASS；`npm run build` exit 0 |
 
 说明：本轮仅做领域层与内容校验，未接入真实浏览器 IME，因此不声称任何输入法或 UI 验收通过。JSON Schema 为构建期生成并随代码导出，未引入 `ajv` 等运行时校验依赖。
+
+## S1 / G1 准备：验证页真实浏览器检查
+
+执行日期：2026-11-02（Asia/Shanghai）
+被测工件：`npm run build` 产物，经 `vite preview` 在 `http://127.0.0.1:4174/` 提供
+浏览器：Playwright 驱动本机缓存 Chromium（Chrome for Testing 151.0.7922.34，headless）
+命令：`node scripts/verify-s1-ui.mjs`（可用 `VERIFY_URL` 覆盖地址，`PLAYWRIGHT_CHROMIUM_PATH` 覆盖浏览器路径）
+
+| 检查 | 结果 | 证据 |
+|---|---|---|
+| 页面标题与首屏 | PASS | 标题为“鹤径 · 小鹤双拼学习器”；统计显示 7 天 / 151 道 / 100 个知识点 |
+| 按键模式正确作答 | PASS | 第 1 天第 1 题“韵母 a”按物理键 <kbd>A</kbd> 后显示“正确” |
+| 错误反馈与答案揭示 | PASS | 输入错误显示“还不对”，点击“显示答案”给出正确码 `o` 与规则解释 |
+| 键位映射图 | PASS | 26 个字母键全部渲染；V 键同时显示 `zh` 与 `ui`；零声母表 12 行 |
+| 歧义字改读音 | PASS | 文本“行”显示“有歧义”，选择 `hang` 后读音为 hang、编码 `hh` |
+| localStorage 持久化 | PASS | 刷新页面后重新输入“行”，仍为 hang / hh，计数保持 1 条 |
+| 清除修正 | PASS | 点击“清除全部修正”后计数回到 0 条 |
+| 控制台 | PASS | 0 条 console error / pageerror |
+| 截图 | PASS | `docs/evidence/s1-ui-verify.png`、`s1-keyboard-verify.png`、`s1-readings-verify.png` |
+
+合计 11 项浏览器断言通过。该检查证明页面可交互且修正可持久化，**不等同** G1 人工验收通过；G1 仍需用户按 `TEST_ACCEPTANCE.md` 逐项确认。
+
+尚未执行：真实系统输入法（IME）组合输入、Windows、PWA 安装与断网。以上均为 `NOT_RUN`，不计入通过。

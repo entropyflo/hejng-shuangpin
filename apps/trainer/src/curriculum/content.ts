@@ -84,7 +84,7 @@ export const LessonSchema = z.object({
 
 export type Lesson = z.infer<typeof LessonSchema>;
 
-const DISPLAY_FINALS = [
+export const DISPLAY_FINALS = [
   "a",
   "o",
   "e",

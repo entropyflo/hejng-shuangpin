@@ -10,6 +10,8 @@
 | DOC-001 | 031, 032, 033, 036, 042 | ENV-001 | DONE | Codex | 每任务更新追踪 | 本追踪矩阵与进度文档 | S0 提交 |
 | PWA-S0 | 014, 020, 027, 030 | ENV-002 | DONE | Codex | S4 时完成离线实测 | 本地 build + HTTP 200 + 浏览器可见 | S0 提交 |
 | G0 | 032, 033 | ENV-001～003, PWA-S0 | DONE | 用户 | 已于 2026-11-02 批准 | `docs/TEST_REPORT.md` | G0 决策提交 |
+| VER-001 | 003, 021, 022 | SCH-003, CUR-002 | DONE | WorkBuddy | G1 反馈后迭代 | 11 项浏览器断言；3 张截图 | S1 验证页提交 |
+| G1 | 001, 002, 021, 022 | SCH-001～003, CUR-001～002, VER-001 | AWAIT_HUMAN_ACCEPTANCE | 用户 | 按 `TEST_ACCEPTANCE.md` G1 逐项验收 | 浏览器证据已备 | — |
 | SCH-001 | 001, 005, 009, 021 | G0 | DONE | Codex | 规则变更时复核四层来源 | SCH-T01, SCH-T03；11 项新增测试 | SCH-001 提交 |
 | SCH-002 | 001, 009, 022 | SCH-001 | DONE | Codex | 规则变更时复跑零声母与正规化金样 | SCH-T02；31 项新增测试 | SCH-002 提交 |
 | SCH-003 | 009, 022 | SCH-001 | DONE | Codex | S1 验证页接入真实 localStorage | SCH-T04 PASS；SCH-T05 领域 PASS/浏览器 NOT_RUN | SCH-003 提交 |
