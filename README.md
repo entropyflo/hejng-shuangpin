@@ -25,7 +25,7 @@
 
 ![鹤径操作演示：从首页到自定义文本逐字跟打](docs/showcase/hejng-demo.gif)
 
-[下载清晰 MP4 演示](docs/showcase/hejng-demo.mp4)
+[下载清晰 MP4 演示](https://github.com/entropyflo/hejng-shuangpin/releases/download/v2.0.0/hejng-demo.mp4)
 
 演示依次展示：首页学习路径、练习中心、粘贴自定义文本，以及汉字和双拼码逐字对错反馈。
 
