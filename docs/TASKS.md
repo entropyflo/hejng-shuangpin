@@ -18,7 +18,8 @@
 | CUR-001 | 001, 002, 017, 019 | SCH-001 | DONE | WorkBuddy | 内容扩充时同步版本号 | CUR-T01, CUR-T02, CUR-T02b | CUR 提交 |
 | CUR-002 | 005, 009 | SCH-001 | DONE | WorkBuddy | 新增题型时补充筛查规则 | CUR-T03, CUR-T04；9 类坏题注入 | CUR 提交 |
 | UI-001 | 003, 010～012, 020, 028, 030 | S1/G1 | DONE | WorkBuddy | 新增页面时复用路由与主题令牌 | UI-T01, UI-T03；12 项浏览器检查 | S2 UI-001 提交 |
-| UI-002～004 | 004, 013, 016, 023, 024 | UI-001 | TODO | WorkBuddy | 练习与键盘提示、IME/按键双模式、专注与快捷键 | INP/UI 全组 | — |
+| UI-002 | 003, 005, 016, 018 | UI-001 | DONE | WorkBuddy | 新增题型时补提示序列与纠错映射 | 18 项浏览器断言；109 单测 | S2 UI-002 提交 |
+| UI-003～004 | 004, 013, 023, 024 | UI-002 | TODO | WorkBuddy | IME/按键双模式、专注与快捷键 | INP/UI 全组 | — |
 | REV-001～003 | 006～008 | S2/G2 | TODO | Codex | S3 分解实现 | REV 全组 | — |
 | STA-001～003 | 008, 018, 025, 026 | S2/G2 | TODO | Codex | S3 分解实现 | STAT 全组 | — |
 | PWA-001, DAT-001～002, PKG-001 | 014, 015, 027, 029 | S3/G3 | TODO | Codex | S4 分解实现 | DATA/PWA/PKG 全组 | — |

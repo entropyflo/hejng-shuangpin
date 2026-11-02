@@ -5,7 +5,9 @@ import {
   buildKeyMap,
   buildReverseRecallOptions,
   checkExerciseAnswer,
+  correctPrefixLength,
   expectedAnswer,
+  expectedKeySequence,
   finalGroupsByKey,
   normalizeCodeInput,
   sameFinals,
@@ -96,5 +98,41 @@ describe("反向记忆选项", () => {
     expect([...shuffled].sort()).toEqual([1, 2, 3, 4, 5]);
     expect(sameFinals(["a", "o"], ["a", "o"])).toBe(true);
     expect(sameFinals(["a", "o"], ["o", "a"])).toBe(false);
+  });
+});
+
+describe("键盘提示序列", () => {
+  it("认键题只提示一个键", () => {
+    const exercise = CURRICULUM.exercises.find((item) => item.id === "key-final-a");
+    if (!exercise) throw new Error("缺少认键题");
+    expect(expectedKeySequence(exercise)).toEqual(["a"]);
+  });
+
+  it("音节题按码位拆分", () => {
+    const exercise = CURRICULUM.exercises.find((item) => item.id === "syllable-shuang");
+    if (!exercise) throw new Error("缺少音节题");
+    expect(expectedKeySequence(exercise)).toEqual(["u", "l"]);
+  });
+
+  it("词句题把所有音节码连成序列", () => {
+    const exercise = CURRICULUM.exercises.find((item) => item.id === "word-zhongguo");
+    if (!exercise) throw new Error("缺少词语题");
+    expect(expectedKeySequence(exercise)).toEqual(["v", "s", "g", "o"]);
+  });
+
+  it("反向记忆题不提供键盘提示", () => {
+    const exercise = CURRICULUM.exercises.find((item) => item.kind === "reverse-recall");
+    if (!exercise) throw new Error("缺少反向题");
+    expect(expectedKeySequence(exercise)).toEqual([]);
+  });
+});
+
+describe("测速前缀比对", () => {
+  it("统计正确前缀长度", () => {
+    expect(correctPrefixLength("abcdef", "abcX")).toBe(3);
+    expect(correctPrefixLength("abc", "")).toBe(0);
+    expect(correctPrefixLength("abc", "abcdef")).toBe(3);
+    expect(correctPrefixLength("abc", "abd")).toBe(2);
+    expect(correctPrefixLength("", "abc")).toBe(0);
   });
 });

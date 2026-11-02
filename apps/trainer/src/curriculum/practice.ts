@@ -96,3 +96,25 @@ export function buildReverseRecallOptions(
 export function sameFinals(left: readonly string[], right: readonly string[]): boolean {
   return left.length === right.length && left.every((value, index) => value === right[index]);
 }
+
+export function expectedKeySequence(exercise: Exercise): string[] {
+  switch (exercise.kind) {
+    case "key-recognition":
+      return [exercise.expectedKey];
+    case "syllable-composition":
+      return Array.from(exercise.expectedCode);
+    case "text-typing":
+    case "speed-challenge":
+      return exercise.expectedCodes.flatMap((code) => Array.from(code));
+    case "reverse-recall":
+      return [];
+  }
+}
+
+export function correctPrefixLength(target: string, typed: string): number {
+  let index = 0;
+  while (index < target.length && index < typed.length && target[index] === typed[index]) {
+    index += 1;
+  }
+  return index;
+}
